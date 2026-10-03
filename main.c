@@ -101,37 +101,37 @@ int main(void) { // Точка входа любой программы, не п
                 int item_id = -1; // Место для идентификатора предмета
 
                 printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1); // Вывод номеров слотов
-                if (scanf("%d", &slot_index) != 1) {
+                if (scanf("%d", &slot_index) != 1) { // Считывает целое число, пытается записать в индекс ячейки
                     printf("Ошибка: нужно ввести число!\n");
                     int ch;
                     while ((ch = getchar()) != '\n' && ch != EOF);
                     break;
                 }
-                if (slot_index < 0 || slot_index >= INVENTORY_SIZE) {
+                if (slot_index < 0 || slot_index >= INVENTORY_SIZE) { // Если меньше 0 или больше размера массива
                     printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
                            slot_index, INVENTORY_SIZE - 1);
                     break;
                 }
-                printf("Введите ID предмета (от 1 до 9): ");
+                printf("Введите ID предмета (от 1 до 9): "); // Вводим ID предмета и защищаем от неверного ввода
                 if (scanf("%d", &item_id) != 1) {
                     printf("Ошибка: нужно ввести число!\n");
                     int ch;
                     while ((ch = getchar()) != '\n' && ch != EOF);
                     break;
                 }
-                if (item_id <= ITEM_EMPTY || item_id > ITEM_SWORD) {
+                if (item_id <= ITEM_EMPTY || item_id > ITEM_SWORD) { // Защита если меньше 0 или больше
                     printf("Ошибка: ID предмета должен быть от 1 до 9!\n");
                     break;
                 }
-                inventory[slot_index] = item_id;
+                inventory[slot_index] = item_id; // Заполняем ячейку нужным предметом
                 printf("Успешно! В слот %d помещен предмет [%d] (%s).\n", 
                        slot_index, item_id, get_item_name(item_id));
                 break;
             }
-            case 5: {
-                int slot_index = -1;
+            case 5: { // Пункт 5
+                int slot_index = -1; // Место для ячейки инвентаря
                 printf("\nВведите номер слота для очистки (от 0 до %d): ", INVENTORY_SIZE - 1);
-                if (scanf("%d", &slot_index) != 1) {
+                if (scanf("%d", &slot_index) != 1) { // Проверка, записано ли верное число
                     printf("Ошибка: нужно ввести число!\n");
                     int ch;
                     while ((ch = getchar()) != '\n' && ch != EOF);
@@ -142,7 +142,7 @@ int main(void) { // Точка входа любой программы, не п
                            slot_index, INVENTORY_SIZE - 1);
                     break;
                 }
-                if (inventory[slot_index] == ITEM_EMPTY) {
+                if (inventory[slot_index] == ITEM_EMPTY) { // Если слот уже пустой
                     printf("Слот %d и так уже пуст!\n", slot_index);
                 } else {
                     int removed_item = inventory[slot_index]; 
@@ -154,11 +154,11 @@ int main(void) { // Точка входа любой программы, не п
 
                 break;
             }
-            case 6: {
-                int garbage_id = -1;
-                int cleaned_count = 0;
+            case 6: { // Пункт 6
+                int garbage_id = -1; // Номер предмета которыйхотим выбросить
+                int cleaned_count = 0; // Счётчик удалённых предметов
 
-                printf("\n--- ВАРИАНТ 5: ОЧИСТКА ОТ МУСОРА ---\n");
+                printf("\n--- ОЧИСТКА ОТ МУСОРА ---\n");
                 printf("Введите ID предмета, который нужно удалить из всего инвентаря (1-9): ");
                 
                 if (scanf("%d", &garbage_id) != 1) {
@@ -173,15 +173,14 @@ int main(void) { // Точка входа любой программы, не п
                     break;
                 }
 
-                
-                for (int i = 0; i < INVENTORY_SIZE; i++) {
-                    if (inventory[i] == garbage_id) {
-                        inventory[i] = ITEM_EMPTY; 
-                        cleaned_count++;           
+                for (int i = 0; i < INVENTORY_SIZE; i++) { // Цикл проверки каждой ячейки
+                    if (inventory[i] == garbage_id) { // Если совпало с тем что хотим выбросить
+                        inventory[i] = ITEM_EMPTY; // Выбросили
+                        cleaned_count++; // Посчитали сколько          
                     }
                 }
 
-                if (cleaned_count == 0) {
+                if (cleaned_count == 0) { // Если такого предмета нет
                     printf("Предмет с ID [%d] (%s) не найден в инвентаре.\n", 
                            garbage_id, get_item_name(garbage_id));
                 } else {
