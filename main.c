@@ -48,7 +48,7 @@ int main(void) {
         printf("[3] Посмотреть инвентарь\n");
         printf("[4] Положить предмет в слот\n");
         printf("[5] Выбросить предмет\n");
-        printf("[6] Выполнить задание по варианту\n");
+        printf("[6] Очистка от мусора\n");
         printf("Выберите пункт меню: ");
 
         if (scanf("%d", &choice) != 1) {
@@ -155,9 +155,53 @@ int main(void) {
 
                 break;
             }
-            case 6:
-                /* задание по варианту */
+            case 6: {
+                int garbage_id = -1;
+                int cleaned_count = 0;
+
+                printf("\n--- ВАРИАНТ 5: ОЧИСТКА ОТ МУСОРА ---\n");
+                printf("Введите ID предмета, который нужно удалить из всего инвентаря (1-9): ");
+                
+                if (scanf("%d", &garbage_id) != 1) {
+                    printf("Ошибка: нужно ввести число!\n");
+                    int ch;
+                    while ((ch = getchar()) != '\n' && ch != EOF);
+                    break;
+                }
+
+                if (garbage_id <= ITEM_EMPTY || garbage_id > ITEM_SWORD) {
+                    printf("Ошибка: ID предмета должен быть от 1 до 9!\n");
+                    break;
+                }
+
+                
+                for (int i = 0; i < INVENTORY_SIZE; i++) {
+                    if (inventory[i] == garbage_id) {
+                        inventory[i] = ITEM_EMPTY; 
+                        cleaned_count++;           
+                    }
+                }
+
+                if (cleaned_count == 0) {
+                    printf("Предмет с ID [%d] (%s) не найден в инвентаре.\n", 
+                           garbage_id, get_item_name(garbage_id));
+                } else {
+                    printf("Успешно удалено предметов [%d] (%s): %d шт.\n", 
+                           garbage_id, get_item_name(garbage_id), cleaned_count);
+                }
+
+                printf("\nИтоговое состояние инвентаря:\n");
+                for (int i = 0; i < INVENTORY_SIZE; i++) {
+                    if (inventory[i] == ITEM_EMPTY) {
+                        printf("Слот %d: [0]\n", i);
+                    } else {
+                        printf("Слот %d: [%d] (%s)\n", i, inventory[i], get_item_name(inventory[i]));
+                    }
+                }
+                printf("------------------------------------\n");
+
                 break;
+            }
             default:
                 printf("Нет такого пункта меню.\n");
                 break;
