@@ -87,7 +87,16 @@ int main(void) {
                 printf("Новое время: День %d, %02d:00\n", current_day, current_hour);
                 break;
             case 3:
-                /* посмотретьg инвентарь */
+                printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
+                for (int i = 0; i < INVENTORY_SIZE; i++) {
+                    if (inventory[i] == ITEM_EMPTY) {
+                        printf("Слот %d: [0]\n", i);
+                    } else {
+                        printf("Слот %d: [%d] (%s)\n", i, inventory[i], get_item_name(inventory[i]));
+                    }
+                }
+                printf("---------------------------\n");
+                break;
                 break;
             case 4:
                 /* положить предмет */
