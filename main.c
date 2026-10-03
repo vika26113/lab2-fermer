@@ -129,9 +129,32 @@ int main(void) {
                        slot_index, item_id, get_item_name(item_id));
                 break;
             }
-            case 5:
-                /* выбросить предмет */
+            case 5: {
+                int slot_index = -1;
+                printf("\nВведите номер слота для очистки (от 0 до %d): ", INVENTORY_SIZE - 1);
+                if (scanf("%d", &slot_index) != 1) {
+                    printf("Ошибка: нужно ввести число!\n");
+                    int ch;
+                    while ((ch = getchar()) != '\n' && ch != EOF);
+                    break;
+                }
+                if (slot_index < 0 || slot_index >= INVENTORY_SIZE) {
+                    printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
+                           slot_index, INVENTORY_SIZE - 1);
+                    break;
+                }
+                if (inventory[slot_index] == ITEM_EMPTY) {
+                    printf("Слот %d и так уже пуст!\n", slot_index);
+                } else {
+                    int removed_item = inventory[slot_index]; 
+                    inventory[slot_index] = ITEM_EMPTY;       
+                    
+                    printf("Вы выбросили предмет [%d] (%s) из слота %d.\n", 
+                           removed_item, get_item_name(removed_item), slot_index);
+                }
+
                 break;
+            }
             case 6:
                 /* задание по варианту */
                 break;
