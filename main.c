@@ -1,24 +1,24 @@
-#include <stdio.h>
+#include <stdio.h> // Библиотека вывода и ввода
 
-#define INVENTORY_SIZE 10
-#define START_DAY 1
-#define START_HOUR 8
-#define HOURS_PER_DAY 24
+#define INVENTORY_SIZE 10 // Размер рюкзака
+#define START_DAY 1 // Начальный день
+#define START_HOUR 8 // Начальный час
+#define HOURS_PER_DAY 24 // Часов в дне
 
-#define ITEM_EMPTY 0
-#define ITEM_WOOD 1
-#define ITEM_STONE 2
-#define ITEM_SEEDS 3
-#define ITEM_IRON 4
-#define ITEM_COAL 5
-#define ITEM_GOLD 6
-#define ITEM_WATER 7
-#define ITEM_HERB 8
-#define ITEM_SWORD 9
+#define ITEM_EMPTY 0 // Пусто
+#define ITEM_WOOD 1 // Дерево
+#define ITEM_STONE 2 // Камень
+#define ITEM_SEEDS 3 // Семена
+#define ITEM_IRON 4 // Железо
+#define ITEM_COAL 5 // Уголь
+#define ITEM_GOLD 6 // Золото
+#define ITEM_WATER 7 // Вода
+#define ITEM_HERB 8 // Лечебная трава
+#define ITEM_SWORD 9 // Меч
 
-const char* get_item_name(int item_id) {
-    switch (item_id) {
-        case ITEM_WOOD: return "Дерево";
+const char* get_item_name(int item_id) { // Функция ID предмета в название
+    switch (item_id) { // Проверяет чему равен переданный номер
+        case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
         case ITEM_STONE: return "Камень";
         case ITEM_SEEDS: return "Семена";
         case ITEM_IRON: return "Железо";
@@ -27,48 +27,47 @@ const char* get_item_name(int item_id) {
         case ITEM_WATER: return "Вода";
         case ITEM_HERB: return "Лечебная трава";
         case ITEM_SWORD: return "Меч";
-        default: return "Пусто";
+        default: return "Пусто"; // Если передан ID которого нет в списке
     }
 }
-int main(void) {
-    int current_day = START_DAY;
-    int current_hour = START_HOUR;
-    int inventory[INVENTORY_SIZE] = {
-        ITEM_WOOD, ITEM_STONE, ITEM_EMPTY, ITEM_SEEDS, ITEM_IRON, 
+int main(void) { // Точка входа любой программы, не принимает аргументов
+    int current_day = START_DAY; // Здесь будет стартовое значение (1)
+    int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
+    int inventory[INVENTORY_SIZE] = { // Объявление массива
+        ITEM_WOOD, ITEM_STONE, ITEM_EMPTY, ITEM_SEEDS, ITEM_IRON, // Раскладываем инвентарь
         ITEM_COAL, ITEM_EMPTY, ITEM_GOLD, ITEM_HERB, ITEM_EMPTY
     };
-    int choice=-1;
-    int hours_worked=0;
+    int choice=-1; // Переменная выбора, запишет число выбранное пользователем
+    int hours_worked=0; // Переменная количества часов отработанных пользователем
 
-    while (1) {
-        printf("\n===== Весёлый фермер =====\n");
-        printf("[0] Выход\n");
+    while (1) { // Бесконечный цикл для циклической работы программы
+        printf("\n===== Весёлый фермер =====\n"); // Вывод заголовка, переход на новую строку
+        printf("[0] Выход\n"); // Вывод пункта
         printf("[1] Посмотреть на часы\n");
         printf("[2] Промотать время (Поработать)\n");
         printf("[3] Посмотреть инвентарь\n");
         printf("[4] Положить предмет в слот\n");
         printf("[5] Выбросить предмет\n");
         printf("[6] Очистка от мусора\n");
-        printf("Выберите пункт меню: ");
+        printf("Выберите пункт меню: "); //Выбор пункта в меню
 
-        if (scanf("%d", &choice) != 1) {
-            printf("Ошибка: нужно ввести число.\n");
-            int ch;
-            while ((ch=getchar())!='\n' && ch!=EOF);
-            continue;
+        if (scanf("%d", &choice) != 1) { // Считывает число, записывает в choice, возвращает количество успешно считанных переменных
+            printf("Ошибка: нужно ввести число.\n"); // Если пользователь ввёл букву
+            int ch; // Переменная для символов с клавиатуры
+            while ((ch=getchar())!='\n' && ch!=EOF); // Читает все символы, пока не будет enter, или файл ввода оборвётся
+            continue; // Прекращает цикл, возвращается в while
         }
 
-        switch (choice) {
-            case 0:
+        switch (choice) { // Сравнивает переменную с вариантами
+            case 0: // Пункт 0
                 printf("Выход из игры. До свидания!\n");
-                return 0;
-                break;
-            case 1:
-                printf("\nТекущее время: День %d, %02d:00\n", current_day, current_hour);
-                break;
-            case 2:
+                return 0; // Завершение программы    
+            case 1: // Пункт 1
+                printf("\nТекущее время: День %d, %02d:00\n", current_day, current_hour); // Вывод времени
+                break; // Прерывает выполнение switch
+            case 2: // Пункт 2
                 printf("\nСколько часов вы хотите поработать?");
-                if (scanf("%d", &hours_worked)!=1) {
+                if (scanf("%d", &hours_worked)!=1) { // Проверка на дурака
                     printf("Ошибка: нужно ввести целое число часов!\n");
                     int ch;
                     while ((ch=getchar())!='\n' && ch!=EOF);
@@ -86,22 +85,22 @@ int main(void) {
                 printf("Вы усердно поработали %d ч. Время пролетело!\n", hours_worked);
                 printf("Новое время: День %d, %02d:00\n", current_day, current_hour);
                 break;
-            case 3:
+            case 3: // Пункт 3
                 printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
-                for (int i = 0; i < INVENTORY_SIZE; i++) {
-                    if (inventory[i] == ITEM_EMPTY) {
-                        printf("Слот %d: [0]\n", i);
-                    } else {
-                        printf("Слот %d: [%d] (%s)\n", i, inventory[i], get_item_name(inventory[i]));
+                for (int i = 0; i < INVENTORY_SIZE; i++) { // Создаём переменную, условие продолжения цикла, увеличиваем на 1
+                    if (inventory[i] == ITEM_EMPTY) { // Если пустой слот 
+                        printf("Слот %d: [0]\n", i); // Вместо i номер слота 
+                    } else { // Если есть предмет
+                        printf("Слот %d: [%d] (%s)\n", i, inventory[i], get_item_name(inventory[i])); // Вывод ячейки инвентаря
                     }
                 }
-                printf("---------------------------\n");
+                printf("---------------------------\n"); // Завершающая линия
                 break;
-            case 4: {
-                int slot_index = -1;
-                int item_id = -1;
+            case 4: { // 4 пункт 
+                int slot_index = -1; // Место для индекса ячейки 
+                int item_id = -1; // Место для идентификатора предмета
 
-                printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1);
+                printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1); // Вывод номеров слотов
                 if (scanf("%d", &slot_index) != 1) {
                     printf("Ошибка: нужно ввести число!\n");
                     int ch;
@@ -212,5 +211,5 @@ int main(void) {
         }
     }
 
-    return 0;
-}
+    return 0; // Завершение прораммы
+} // Конец функции main
