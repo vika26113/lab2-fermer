@@ -97,10 +97,38 @@ int main(void) {
                 }
                 printf("---------------------------\n");
                 break;
+            case 4: {
+                int slot_index = -1;
+                int item_id = -1;
+
+                printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1);
+                if (scanf("%d", &slot_index) != 1) {
+                    printf("Ошибка: нужно ввести число!\n");
+                    int ch;
+                    while ((ch = getchar()) != '\n' && ch != EOF);
+                    break;
+                }
+                if (slot_index < 0 || slot_index >= INVENTORY_SIZE) {
+                    printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
+                           slot_index, INVENTORY_SIZE - 1);
+                    break;
+                }
+                printf("Введите ID предмета (от 1 до 9): ");
+                if (scanf("%d", &item_id) != 1) {
+                    printf("Ошибка: нужно ввести число!\n");
+                    int ch;
+                    while ((ch = getchar()) != '\n' && ch != EOF);
+                    break;
+                }
+                if (item_id <= ITEM_EMPTY || item_id > ITEM_SWORD) {
+                    printf("Ошибка: ID предмета должен быть от 1 до 9!\n");
+                    break;
+                }
+                inventory[slot_index] = item_id;
+                printf("Успешно! В слот %d помещен предмет [%d] (%s).\n", 
+                       slot_index, item_id, get_item_name(item_id));
                 break;
-            case 4:
-                /* положить предмет */
-                break;
+            }
             case 5:
                 /* выбросить предмет */
                 break;
