@@ -1,10 +1,10 @@
 #include <stdio.h> // Библиотека вывода и ввода
-
+#include <string.h>  // Библиотека для строк
 #define INVENTORY_SIZE 10 // Размер рюкзака
 #define START_DAY 1 // Начальный день
 #define START_HOUR 8 // Начальный час
 #define HOURS_PER_DAY 24 // Часов в дне
-
+#define MAX_NAME_LEN 32  // Максимальная длина имени
 #define ITEM_EMPTY 0 // Пусто
 #define ITEM_WOOD 1 // Дерево
 #define ITEM_STONE 2 // Камень
@@ -15,7 +15,15 @@
 #define ITEM_WATER 7 // Вода
 #define ITEM_HERB 8 // Лечебная трава
 #define ITEM_SWORD 9 // Меч
-
+void input_farmer_name(char farmer_name[MAX_NAME_LEN]) {
+    printf("Введите имя вашего фермера (до 31 символа): ");
+    if (fgets(farmer_name, MAX_NAME_LEN, stdin) != NULL) {
+        farmer_name[strcspn(farmer_name, "\n")] = '\0';
+    }
+    if (strlen(farmer_name) == 0) {
+        strcpy(farmer_name, "Фермер");
+    }
+}
 const char* get_item_name(int item_id) { // Функция ID предмета в название
     switch (item_id) { // Проверяет чему равен переданный номер
         case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
