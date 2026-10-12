@@ -1,11 +1,12 @@
 #include <stdio.h> // Библиотека вывода и ввода
 #include <string.h>  // Библиотека для строк
-#include <windows.h> 
+#include <windows.h> // Библиотека для windows
 #define INVENTORY_SIZE 10 // Размер рюкзака
 #define START_DAY 1 // Начальный день
 #define START_HOUR 8 // Начальный час
 #define HOURS_PER_DAY 24 // Часов в дне
-#define MAX_NAME_LEN 32  // Максимальная длина имени
+#define MAX_NAME_LEN 32  // Максимальная длина имени, названий
+#define MAX_ITEMS 10 // Всего предметов от 0 до 9
 #define ITEM_EMPTY 0 // Пусто
 #define ITEM_WOOD 1 // Дерево
 #define ITEM_STONE 2 // Камень
@@ -16,16 +17,46 @@
 #define ITEM_WATER 7 // Вода
 #define ITEM_HERB 8 // Лечебная трава
 #define ITEM_SWORD 9 // Меч
-void input_farmer_name(char farmer_name[MAX_NAME_LEN]) {
+void input_farmer_name(char farmer_name[MAX_NAME_LEN]) { // Функция ввода имени, массив символов для имени
     printf("Введите имя вашего фермера (до 31 символа): ");
-    if (fgets(farmer_name, MAX_NAME_LEN, stdin) != NULL) {
-        farmer_name[strcspn(farmer_name, "\n")] = '\0';
+    if (fgets(farmer_name, MAX_NAME_LEN, stdin) != NULL) { // Проверка что считывание без ошибок
+        farmer_name[strcspn(farmer_name, "\n")] = '\0'; // Убирает символ /n, для красивого вывода
     }
-    if (strlen(farmer_name) == 0) {
-        strcpy(farmer_name, "Фермер");
+    if (strlen(farmer_name) == 0) { // Если не ввели имя
+        strcpy(farmer_name, "Фермер"); // Копируем имя фермер
     }
 }
-const char* get_item_name(int item_id) { // Функция ID предмета в название
+void set_default_items(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция заполнения предмеов, еслифайл не найден
+    strcpy(item_names[0], "Пусто"); // Записывает предмет в массив
+    strcpy(item_names[1], "Дерево");
+    strcpy(item_names[2], "Камень");
+    strcpy(item_names[3], "Семена");
+    strcpy(item_names[4], "Железо");
+    strcpy(item_names[5], "Уголь");
+    strcpy(item_names[6], "Золото");
+    strcpy(item_names[7], "Вода");
+    strcpy(item_names[8], "Трава");
+    strcpy(item_names[9], "Меч");
+}
+void load_items_from_file(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Чтение каталога из items 
+    FILE *file = fopen("items.txt", "r"); // Открывает и считывает файл
+    if (file == NULL) { // Если нет файла
+        printf("Предупреждение: файл items.txt не найден! Загружены стандартные предметы.\n");
+        set_default_items(item_names); // Вызывает функцию заполнения предметами
+        return; 
+    }
+    for (int i = 0; i < MAX_ITEMS; i++) { // Считываем 10 строчек
+        if (fgets(item_names[i], MAX_NAME_LEN, file) != NULL) { // Считываем по одной строчке из файла
+            item_names[i][strcspn(item_names[i], "\n")] = '\0'; // Убирает /n
+        } 
+        else {
+            strcpy(item_names[i], "Неизвестно"); // Если ничего не ввели
+        }
+    }
+    fclose(file); // Закрывает файл
+    printf("Каталог предметов успешно загружен из файла items.txt!\n");
+}
+const char* get_item_name(int item_id) { // Функция для определения предмета
     switch (item_id) { // Проверяет чему равен переданный номер
         case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
         case ITEM_STONE: return "Камень";
@@ -48,13 +79,15 @@ int main(void) { // Точка входа любой программы, не п
     };
     int choice=-1; // Переменная выбора, запишет число выбранное пользователем
     int hours_worked=0; // Переменная количества часов отработанных пользователем
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-    char farmer_name[MAX_NAME_LEN] = "";
-    input_farmer_name(farmer_name);
-    printf("\n=== ИГРОВОЕ МЕНЮ (Фермер: %s) ===\n", farmer_name);
+    SetConsoleOutputCP(CP_UTF8); // Для windows
+    SetConsoleCP(CP_UTF8); // Для windows
+    char farmer_name[MAX_NAME_LEN] = ""; // Массив для имени
+    input_farmer_name(farmer_name); // Вызов функции для ввода имени
+    printf("\nЗдравствуйте, %s!\n", farmer_name);
+    char item_names[MAX_ITEMS][MAX_NAME_LEN]; // Двумерный массив для названий предметов
+    load_items_from_file(item_names); // Загрузка предметов из файла
     while (1) { // Бесконечный цикл для циклической работы программы
-        printf("\n===== Весёлый фермер =====\n"); // Вывод заголовка, переход на новую строку
+        printf("\n=== Весёлый фермер (Фермер: %s) ===\n", farmer_name);// Вывод заголовка, переход на новую строку
         printf("[0] Выход\n"); // Вывод пункта
         printf("[1] Посмотреть на часы\n");
         printf("[2] Промотать время (Поработать)\n");
