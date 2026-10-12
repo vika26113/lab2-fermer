@@ -1,5 +1,6 @@
 #include <stdio.h> // Библиотека вывода и ввода
 #include <string.h>  // Библиотека для строк
+#include <windows.h> 
 #define INVENTORY_SIZE 10 // Размер рюкзака
 #define START_DAY 1 // Начальный день
 #define START_HOUR 8 // Начальный час
@@ -47,7 +48,11 @@ int main(void) { // Точка входа любой программы, не п
     };
     int choice=-1; // Переменная выбора, запишет число выбранное пользователем
     int hours_worked=0; // Переменная количества часов отработанных пользователем
-
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+    char farmer_name[MAX_NAME_LEN] = "";
+    input_farmer_name(farmer_name);
+    printf("\n=== ИГРОВОЕ МЕНЮ (Фермер: %s) ===\n", farmer_name);
     while (1) { // Бесконечный цикл для циклической работы программы
         printf("\n===== Весёлый фермер =====\n"); // Вывод заголовка, переход на новую строку
         printf("[0] Выход\n"); // Вывод пункта
