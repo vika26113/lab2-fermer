@@ -56,6 +56,18 @@ void load_items_from_file(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Чте�
     fclose(file); // Закрывает файл
     printf("Каталог предметов успешно загружен из файла items.txt!\n");
 }
+void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+    printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int item_id = inventory[i]; 
+        if (item_id == ITEM_EMPTY) {
+            printf("Слот %d: [0] (%s)\n", i, item_names[0]);
+        } else {
+            printf("Слот %d: [%d] (%s)\n", i, item_id, item_names[item_id]);
+        }
+    }
+    printf("---------------------------\n");
+}
 const char* get_item_name(int item_id) { // Функция для определения предмета
     switch (item_id) { // Проверяет чему равен переданный номер
         case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
@@ -132,15 +144,7 @@ int main(void) { // Точка входа любой программы, не п
                 printf("Новое время: День %d, %02d:00\n", current_day, current_hour);
                 break;
             case 3: // Пункт 3
-                printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
-                for (int i = 0; i < INVENTORY_SIZE; i++) { // Создаём переменную, условие продолжения цикла, увеличиваем на 1
-                    if (inventory[i] == ITEM_EMPTY) { // Если пустой слот 
-                        printf("Слот %d: [0]\n", i); // Вместо i номер слота 
-                    } else { // Если есть предмет
-                        printf("Слот %d: [%d] (%s)\n", i, inventory[i], get_item_name(inventory[i])); // Вывод ячейки инвентаря
-                    }
-                }
-                printf("---------------------------\n"); // Завершающая линия
+                display_inventory(inventory, item_names);
                 break;
             case 4: { // 4 пункт 
                 int slot_index = -1; // Место для индекса ячейки 
