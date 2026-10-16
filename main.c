@@ -6,6 +6,7 @@
 #define START_HOUR 8 // Начальный час
 #define HOURS_PER_DAY 24 // Часов в дне
 #define MAX_NAME_LEN 32  // Максимальная длина имени, названий
+#define LINE_BUFFER_LEN 128 // Размер памяти для текстовой строки
 #define MAX_ITEMS 10 // Всего предметов от 0 до 9
 #define ITEM_EMPTY 0 // Пусто
 #define ITEM_WOOD 1 // Дерево
@@ -92,6 +93,23 @@ void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MA
     }
     printf("---------------------------------------\n");
 }
+void write_to_diary(const char *farmer_name, int day, int hour) {
+    char diary_entry[LINE_BUFFER_LEN];
+    printf("\nВведите запись для дневника фермера: ");
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
+    if (fgets(diary_entry, sizeof(diary_entry), stdin) != NULL) {
+        diary_entry[strcspn(diary_entry, "\n")] = '\0'; // Убираем перенос строки
+    }
+    FILE *file = fopen("diary.txt", "a");
+    if (file == NULL) {
+        printf("Ошибка: не удалось открыть файл diary.txt для записи!\n");
+        return;
+    }
+    fprintf(file, "[День %d, Время %02d:00] Фермер %s: %s\n", day, hour, farmer_name, diary_entry);
+    fclose(file); 
+    printf("Запись успешно добавлена в дневник (diary.txt)!\n");
+}
 const char* get_item_name(int item_id) { // Функция для определения предмета
     switch (item_id) { // Проверяет чему равен переданный номер
         case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
@@ -132,6 +150,7 @@ int main(void) { // Точка входа любой программы, не п
         printf("[5] Выбросить предмет\n");
         printf("[6] Очистка от мусора\n");
         printf("[7] Поиск предмета в рюкзаке по названию\n");
+        printf("[8] Записать состояние в дневник фермера (diary.txt)\n");
         printf("Выберите пункт меню: "); //Выбор пункта в меню
 
         if (scanf("%d", &choice) != 1) { // Считывает число, записывает в choice, возвращает количество успешно считанных переменных
@@ -277,11 +296,14 @@ int main(void) { // Точка входа любой программы, не п
             case 7:
                 search_item_by_name(inventory, item_names);
                 break;
+            case 8:
+                write_to_diary(farmer_name, current_day, current_hour);
+                break;
             default:
                 printf("Нет такого пункта меню.\n");
                 break;
         }
-
+        
         if (choice == 0) {
             break;
         }
