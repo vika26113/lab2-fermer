@@ -68,6 +68,30 @@ void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_
     }
     printf("---------------------------\n");
 }
+void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+    char search_query[MAX_NAME_LEN];
+    printf("\nВведите название предмета для поиска: ");
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
+    if (fgets(search_query, MAX_NAME_LEN, stdin) != NULL) {
+        search_query[strcspn(search_query, "\n")] = '\0';
+    }
+    int found_count = 0; 
+    printf("\n--- РЕЗУЛЬТАТЫ ПОИСКА ДЛЯ \"%s\" ---\n", search_query);
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int item_id = inventory[i]; 
+        if (item_id >= 0 && item_id < MAX_ITEMS) {
+            if (strcmp(item_names[item_id], search_query) == 0) {
+                printf("Найдено! Слот %d: [%d] (%s)\n", i, item_id, item_names[item_id]);
+                found_count++;
+            }
+        }
+    }
+    if (found_count == 0) {
+        printf("Предмет \"%s\" не найден в вашем рюкзаке.\n", search_query);
+    }
+    printf("---------------------------------------\n");
+}
 const char* get_item_name(int item_id) { // Функция для определения предмета
     switch (item_id) { // Проверяет чему равен переданный номер
         case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
@@ -107,6 +131,7 @@ int main(void) { // Точка входа любой программы, не п
         printf("[4] Положить предмет в слот\n");
         printf("[5] Выбросить предмет\n");
         printf("[6] Очистка от мусора\n");
+        printf("[7] Поиск предмета в рюкзаке по названию\n");
         printf("Выберите пункт меню: "); //Выбор пункта в меню
 
         if (scanf("%d", &choice) != 1) { // Считывает число, записывает в choice, возвращает количество успешно считанных переменных
@@ -115,7 +140,6 @@ int main(void) { // Точка входа любой программы, не п
             while ((ch=getchar())!='\n' && ch!=EOF); // Читает все символы, пока не будет enter, или файл ввода оборвётся
             continue; // Прекращает цикл, возвращается в while
         }
-
         switch (choice) { // Сравнивает переменную с вариантами
             case 0: // Пункт 0
                 printf("Выход из игры. До свидания!\n");
@@ -250,6 +274,9 @@ int main(void) { // Точка входа любой программы, не п
 
                 break;
             }
+            case 7:
+                search_item_by_name(inventory, item_names);
+                break;
             default:
                 printf("Нет такого пункта меню.\n");
                 break;
