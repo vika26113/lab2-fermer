@@ -148,6 +148,35 @@ void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAM
                removed_item, item_names[removed_item], slot_index);
     }
 }
+void clean_garbage(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+    int garbage_id = -1;
+    int cleaned_count = 0;
+    printf("\n--- ОЧИСТКА ОТ МУСОРА ---\n");
+    printf("Введите ID предмета, который нужно удалить из всего инвентаря (1-%d): ", MAX_ITEMS - 1);
+    if (scanf("%d", &garbage_id) != 1) {
+        printf("Ошибка: нужно ввести число!\n");
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF);
+        return; 
+    }
+    if (garbage_id <= ITEM_EMPTY || garbage_id >= MAX_ITEMS) {
+        printf("Ошибка: ID предмета должен быть от 1 до %d!\n", MAX_ITEMS - 1);
+        return;
+    }
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        if (inventory[i] == garbage_id) {
+            inventory[i] = ITEM_EMPTY; 
+            cleaned_count++;           
+        }
+    }
+    if (cleaned_count == 0) {
+        printf("Предмет [%d] (%s) не найден в инвентаре.\n", 
+               garbage_id, item_names[garbage_id]);
+    } else {
+        printf("Успешно удалено предметов [%d] (%s): %d шт.\n", 
+               garbage_id, item_names[garbage_id], cleaned_count);
+    }
+}
 void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     char search_query[MAX_NAME_LEN];
     printf("\nВведите название предмета для поиска: ");
@@ -249,20 +278,6 @@ void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char it
     fclose(out_file); 
     printf("Ведомость успешно сохранена в файл output.txt!\n");
 }
-const char* get_item_name(int item_id) { // Функция для определения предмета
-    switch (item_id) { // Проверяет чему равен переданный номер
-        case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
-        case ITEM_STONE: return "Камень";
-        case ITEM_SEEDS: return "Семена";
-        case ITEM_IRON: return "Железо";
-        case ITEM_COAL: return "Уголь";
-        case ITEM_GOLD: return "Золото";
-        case ITEM_WATER: return "Вода";
-        case ITEM_HERB: return "Лечебная трава";
-        case ITEM_SWORD: return "Меч";
-        default: return "Пусто"; // Если передан ID которого нет в списке
-    }
-}
 int main(void) { // Точка входа любой программы, не принимает аргументов
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
     int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
@@ -301,7 +316,7 @@ int main(void) { // Точка входа любой программы, не п
         }
         switch (choice) { // Сравнивает переменную с вариантами
             case 0: // Пункт 0
-                printf("Выход из игры. До свидания!\n");
+                printf("Выход из игры. До свидания, %s!\n", farmer_name);
                 return 0; // Завершение программы    
             case 1: // Пункт 1
                 display_time(current_day, current_hour); // Вызываем функцию для вывода текущего времени
@@ -310,62 +325,17 @@ int main(void) { // Точка входа любой программы, не п
                 advance_time(&current_day, &current_hour); // Вызываем функцию для работы фермера
                 break;
             case 3: // Пункт 3
-                display_inventory(inventory, item_names);
+                display_inventory(inventory, item_names); // Вызов функции для списка предметов
                 break;
-            case 4: { // 4 пункт 
+            case 4: // 4 пункт 
                 put_item(inventory, item_names); // Вызов функции для добавления предмета в слот
                 break;
-            }
-            case 5: { // Пункт 5
+            case 5: // Пункт 5
                 drop_item(inventory, item_names); // Вызов функции для удаления предмета
                 break;
-            }
-            case 6: { // Пункт 6
-                int garbage_id = -1; // Номер предмета которыйхотим выбросить
-                int cleaned_count = 0; // Счётчик удалённых предметов
-
-                printf("\n--- ОЧИСТКА ОТ МУСОРА ---\n");
-                printf("Введите ID предмета, который нужно удалить из всего инвентаря (1-9): ");
-                
-                if (scanf("%d", &garbage_id) != 1) {
-                    printf("Ошибка: нужно ввести число!\n");
-                    int ch;
-                    while ((ch = getchar()) != '\n' && ch != EOF);
-                    break;
-                }
-
-                if (garbage_id <= ITEM_EMPTY || garbage_id > ITEM_SWORD) {
-                    printf("Ошибка: ID предмета должен быть от 1 до 9!\n");
-                    break;
-                }
-
-                for (int i = 0; i < INVENTORY_SIZE; i++) { // Цикл проверки каждой ячейки
-                    if (inventory[i] == garbage_id) { // Если совпало с тем что хотим выбросить
-                        inventory[i] = ITEM_EMPTY; // Выбросили
-                        cleaned_count++; // Посчитали сколько          
-                    }
-                }
-
-                if (cleaned_count == 0) { // Если такого предмета нет
-                    printf("Предмет с ID [%d] (%s) не найден в инвентаре.\n", 
-                           garbage_id, get_item_name(garbage_id));
-                } else {
-                    printf("Успешно удалено предметов [%d] (%s): %d шт.\n", 
-                           garbage_id, get_item_name(garbage_id), cleaned_count);
-                }
-
-                printf("\nИтоговое состояние инвентаря:\n");
-                for (int i = 0; i < INVENTORY_SIZE; i++) {
-                    if (inventory[i] == ITEM_EMPTY) {
-                        printf("Слот %d: [0]\n", i);
-                    } else {
-                        printf("Слот %d: [%d] (%s)\n", i, inventory[i], get_item_name(inventory[i]));
-                    }
-                }
-                printf("------------------------------------\n");
-
+            case 6: // Пункт 6
+                clean_garbage(inventory, item_names); // Вызов функции для очистки инвентаря от выбранного мусора
                 break;
-            }
             case 7:
                 search_item_by_name(inventory, item_names);
                 break;
