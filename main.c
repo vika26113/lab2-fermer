@@ -7,6 +7,7 @@
 #define HOURS_PER_DAY 24 // Часов в дне
 #define MAX_NAME_LEN 32  // Максимальная длина имени, названий
 #define LINE_BUFFER_LEN 128 // Размер памяти для текстовой строки
+#define MAX_PRICES 30  // 
 #define MAX_ITEMS 10 // Всего предметов от 0 до 9
 #define ITEM_EMPTY 0 // Пусто
 #define ITEM_WOOD 1 // Дерево
@@ -110,6 +111,66 @@ void write_to_diary(const char *farmer_name, int day, int hour) {
     fclose(file); 
     printf("Запись успешно добавлена в дневник (diary.txt)!\n");
 }
+void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+    char price_names[MAX_PRICES][MAX_NAME_LEN];
+    int price_values[MAX_PRICES];
+    int price_count = 0;
+    FILE *in_file = fopen("input.txt", "r");
+    if (in_file == NULL) {
+        printf("\nОшибка: файл с прейскурантом input.txt не найден!\n");
+        return;
+    }
+    while (price_count < MAX_PRICES && fscanf(in_file, "%31s %d", price_names[price_count], &price_values[price_count]) == 2) {
+        price_count++;
+    }
+    fclose(in_file); 
+    FILE *out_file = fopen("output.txt", "w");
+    if (out_file == NULL) {
+        printf("\nОшибка: не удалось создать файл output.txt!\n");
+        return;
+    }
+    int total_sum = 0;
+    int max_item_price = -1;
+    char max_item_name[MAX_NAME_LEN] = "Нет предметов";
+    printf("\n=== ОЦЕНОЧНАЯ ВЕДОМОСТЬ СКУПЩИКА ===\n");
+    fprintf(out_file, "=== ОЦЕНОЧНАЯ ВЕДОМОСТЬ СКУПЩИКА ===\n");
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int item_id = inventory[i];
+        if (item_id == ITEM_EMPTY) {
+            continue;
+        }
+        char *current_name = item_names[item_id];
+        int current_price = 0; 
+        for (int p = 0; p < price_count; p++) {
+            if (strcmp(current_name, price_names[p]) == 0) {
+                current_price = price_values[p];
+                break; 
+            }
+        }
+        total_sum += current_price;
+        if (current_price > max_item_price) {
+            max_item_price = current_price;
+            strcpy(max_item_name, current_name);
+        }
+        printf("Слот %d: [%d] %s — Цена: %d монет\n", i, item_id, current_name, current_price);
+        fprintf(out_file, "Слот %d: [%d] %s — Цена: %d монет\n", i, item_id, current_name, current_price);
+    }
+    printf("------------------------------------\n");
+    fprintf(out_file, "------------------------------------\n");
+    if (max_item_price > 0) {
+        printf("Самый дорогой предмет в рюкзаке: %s (%d монет)\n", max_item_name, max_item_price);
+        fprintf(out_file, "Самый дорогой предмет в рюкзаке: %s (%d монет)\n", max_item_name, max_item_price);
+    } else {
+        printf("В рюкзаке нет ценных предметов.\n");
+        fprintf(out_file, "В рюкзаке нет ценных предметов.\n");
+    }
+    printf("ИТОГОВАЯ ВЫРУЧКА ЗА ВСЁ: %d монет\n", total_sum);
+    fprintf(out_file, "ИТОГОВАЯ ВЫРУЧКА ЗА ВСЁ: %d монет\n", total_sum);
+    printf("====================================\n");
+    fprintf(out_file, "====================================\n");
+    fclose(out_file); 
+    printf("Ведомость успешно сохранена в файл output.txt!\n");
+}
 const char* get_item_name(int item_id) { // Функция для определения предмета
     switch (item_id) { // Проверяет чему равен переданный номер
         case ITEM_WOOD: return "Дерево"; // Если номер совпал то возвращается его название
@@ -151,6 +212,7 @@ int main(void) { // Точка входа любой программы, не п
         printf("[6] Очистка от мусора\n");
         printf("[7] Поиск предмета в рюкзаке по названию\n");
         printf("[8] Записать состояние в дневник фермера (diary.txt)\n");
+        printf("[9] Оценка рюкзака у скупщика\n");
         printf("Выберите пункт меню: "); //Выбор пункта в меню
 
         if (scanf("%d", &choice) != 1) { // Считывает число, записывает в choice, возвращает количество успешно считанных переменных
@@ -299,6 +361,9 @@ int main(void) { // Точка входа любой программы, не п
             case 8:
                 write_to_diary(farmer_name, current_day, current_hour);
                 break;
+            case 9:
+                evaluate_inventory_at_merchant(inventory, item_names);
+                break;
             default:
                 printf("Нет такого пункта меню.\n");
                 break;
@@ -308,6 +373,6 @@ int main(void) { // Точка входа любой программы, не п
             break;
         }
     }
-
+    
     return 0; // Завершение прораммы
 } // Конец функции main
