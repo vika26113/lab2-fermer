@@ -5,8 +5,8 @@
 #define START_DAY 1 // Начальный день
 #define START_HOUR 8 // Начальный час
 #define HOURS_PER_DAY 24 // Часов в дне
-#define MAX_NAME_LEN 32  // Максимальная длина имени, названий
-#define LINE_BUFFER_LEN 128 // Размер памяти для текстовой строки
+#define MAX_NAME_LEN 32  // Максимальная длина имени, названий (31 символ и \0)
+#define LINE_BUFFER_LEN 128 // 
 #define MAX_PRICES 30  // 
 #define MAX_ITEMS 10 // Всего предметов от 0 до 9
 #define ITEM_EMPTY 0 // Пусто
@@ -246,7 +246,7 @@ void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char it
         if (item_id == ITEM_EMPTY) {
             continue;
         }
-        char *current_name = item_names[item_id];
+        const char *current_name = item_names[item_id];
         int current_price = 0; 
         for (int p = 0; p < price_count; p++) {
             if (strcmp(current_name, price_names[p]) == 0) {
@@ -337,13 +337,13 @@ int main(void) { // Точка входа любой программы, не п
                 clean_garbage(inventory, item_names); // Вызов функции для очистки инвентаря от выбранного мусора
                 break;
             case 7:
-                search_item_by_name(inventory, item_names);
+                search_item_by_name(inventory, item_names); // Вызов функции для поиска предмета по названию
                 break;
             case 8:
-                write_to_diary(farmer_name, current_day, current_hour);
+                write_to_diary(farmer_name, current_day, current_hour); // Вызов функции для записи в дневник 
                 break;
             case 9:
-                evaluate_inventory_at_merchant(inventory, item_names);
+                evaluate_inventory_at_merchant(inventory, item_names); // Вызов функции для оценки рюкзака у скупщика
                 break;
             default:
                 printf("Нет такого пункта меню.\n");
