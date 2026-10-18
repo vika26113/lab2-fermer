@@ -95,6 +95,59 @@ void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_
     }
     printf("---------------------------\n");
 }
+void put_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+    int slot_index = -1;
+    int item_id = -1;
+    printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1);
+    if (scanf("%d", &slot_index) != 1) {
+        printf("Ошибка: нужно ввести число!\n");
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF);
+        return;
+    }
+    if (slot_index < 0 || slot_index >= INVENTORY_SIZE) {
+        printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
+               slot_index, INVENTORY_SIZE - 1);
+        return;
+    }
+    printf("Введите ID предмета (от 1 до %d): ", MAX_ITEMS - 1);
+    if (scanf("%d", &item_id) != 1) {
+        printf("Ошибка: нужно ввести число!\n");
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF);
+        return;
+    }
+    if (item_id <= ITEM_EMPTY || item_id >= MAX_ITEMS) {
+        printf("Ошибка: ID предмета должен быть от 1 до %d!\n", MAX_ITEMS - 1);
+        return;
+    }
+    inventory[slot_index] = item_id;
+    printf("Успешно! В слот %d помещен предмет [%d] (%s).\n", 
+           slot_index, item_id, item_names[item_id]);
+}
+void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+    int slot_index = -1;
+    printf("\nВведите номер слота для очистки (от 0 до %d): ", INVENTORY_SIZE - 1);
+    if (scanf("%d", &slot_index) != 1) {
+        printf("Ошибка: нужно ввести число!\n");
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF);
+        return;
+    }
+    if (slot_index < 0 || slot_index >= INVENTORY_SIZE) {
+        printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
+               slot_index, INVENTORY_SIZE - 1);
+        return;
+    }
+    if (inventory[slot_index] == ITEM_EMPTY) {
+        printf("Слот %d и так уже пуст!\n", slot_index);
+    } else {
+        int removed_item = inventory[slot_index];
+        inventory[slot_index] = ITEM_EMPTY; 
+        printf("Вы выбросили предмет [%d] (%s) из слота %d.\n", 
+               removed_item, item_names[removed_item], slot_index);
+    }
+}
 void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     char search_query[MAX_NAME_LEN];
     printf("\nВведите название предмета для поиска: ");
@@ -260,61 +313,11 @@ int main(void) { // Точка входа любой программы, не п
                 display_inventory(inventory, item_names);
                 break;
             case 4: { // 4 пункт 
-                int slot_index = -1; // Место для индекса ячейки 
-                int item_id = -1; // Место для идентификатора предмета
-
-                printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1); // Вывод номеров слотов
-                if (scanf("%d", &slot_index) != 1) { // Считывает целое число, пытается записать в индекс ячейки
-                    printf("Ошибка: нужно ввести число!\n");
-                    int ch;
-                    while ((ch = getchar()) != '\n' && ch != EOF);
-                    break;
-                }
-                if (slot_index < 0 || slot_index >= INVENTORY_SIZE) { // Если меньше 0 или больше размера массива
-                    printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
-                           slot_index, INVENTORY_SIZE - 1);
-                    break;
-                }
-                printf("Введите ID предмета (от 1 до 9): "); // Вводим ID предмета и защищаем от неверного ввода
-                if (scanf("%d", &item_id) != 1) {
-                    printf("Ошибка: нужно ввести число!\n");
-                    int ch;
-                    while ((ch = getchar()) != '\n' && ch != EOF);
-                    break;
-                }
-                if (item_id <= ITEM_EMPTY || item_id > ITEM_SWORD) { // Защита если меньше 0 или больше
-                    printf("Ошибка: ID предмета должен быть от 1 до 9!\n");
-                    break;
-                }
-                inventory[slot_index] = item_id; // Заполняем ячейку нужным предметом
-                printf("Успешно! В слот %d помещен предмет [%d] (%s).\n", 
-                       slot_index, item_id, get_item_name(item_id));
+                put_item(inventory, item_names); // Вызов функции для добавления предмета в слот
                 break;
             }
             case 5: { // Пункт 5
-                int slot_index = -1; // Место для ячейки инвентаря
-                printf("\nВведите номер слота для очистки (от 0 до %d): ", INVENTORY_SIZE - 1);
-                if (scanf("%d", &slot_index) != 1) { // Проверка, записано ли верное число
-                    printf("Ошибка: нужно ввести число!\n");
-                    int ch;
-                    while ((ch = getchar()) != '\n' && ch != EOF);
-                    break;
-                }
-                if (slot_index < 0 || slot_index >= INVENTORY_SIZE) {
-                    printf("Ошибка: слот с номером %d не существует! Допустимы только 0..%d.\n", 
-                           slot_index, INVENTORY_SIZE - 1);
-                    break;
-                }
-                if (inventory[slot_index] == ITEM_EMPTY) { // Если слот уже пустой
-                    printf("Слот %d и так уже пуст!\n", slot_index);
-                } else {
-                    int removed_item = inventory[slot_index]; 
-                    inventory[slot_index] = ITEM_EMPTY;       
-                    
-                    printf("Вы выбросили предмет [%d] (%s) из слота %d.\n", 
-                           removed_item, get_item_name(removed_item), slot_index);
-                }
-
+                drop_item(inventory, item_names); // Вызов функции для удаления предмета
                 break;
             }
             case 6: { // Пункт 6
