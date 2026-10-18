@@ -58,6 +58,31 @@ void load_items_from_file(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Чте�
     fclose(file); // Закрывает файл
     printf("Каталог предметов успешно загружен из файла items.txt!\n");
 }
+void display_time(int day, int hour) {
+    printf("\n--- ТЕКУЩЕЕ ВРЕМЯ ---\n");
+    printf("День: %d\n", day);
+    printf("Время: %02d:00\n", hour);
+    printf("---------------------\n");
+}
+void advance_time(int *day, int *hour) {
+    int hours_worked = 0;
+    printf("\nСколько часов вы хотите поработать? ");
+    if (scanf("%d", &hours_worked) != 1) {
+        printf("Ошибка: нужно ввести целое число часов!\n");
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF);
+        return;
+    }
+    if (hours_worked <= 0) {
+        printf("Количество часов должно быть положительным числом (> 0)!\n");
+        return;
+    }
+    int total_hours = *hour + hours_worked;
+    *day += total_hours / HOURS_PER_DAY;
+    *hour = total_hours % HOURS_PER_DAY;
+    printf("Вы усердно поработали %d ч. Время пролетело!\n", hours_worked);
+    printf("Новое время: День %d, %02d:00\n", *day, *hour);
+}
 void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
     for (int i = 0; i < INVENTORY_SIZE; i++) {
@@ -226,27 +251,10 @@ int main(void) { // Точка входа любой программы, не п
                 printf("Выход из игры. До свидания!\n");
                 return 0; // Завершение программы    
             case 1: // Пункт 1
-                printf("\nТекущее время: День %d, %02d:00\n", current_day, current_hour); // Вывод времени
-                break; // Прерывает выполнение switch
+                display_time(current_day, current_hour); // Вызываем функцию для вывода текущего времени
+                break;
             case 2: // Пункт 2
-                printf("\nСколько часов вы хотите поработать?");
-                if (scanf("%d", &hours_worked)!=1) { // Проверка на дурака
-                    printf("Ошибка: нужно ввести целое число часов!\n");
-                    int ch;
-                    while ((ch=getchar())!='\n' && ch!=EOF);
-                    break;
-                }
-                if (hours_worked<=0) {
-                    printf("Количество часов должно быть положительным числом!\n");
-                    break;
-                }
-                {
-                    int total_hours=current_hour+hours_worked;
-                    current_day+=total_hours / HOURS_PER_DAY;
-                    current_hour=total_hours % HOURS_PER_DAY;
-                }
-                printf("Вы усердно поработали %d ч. Время пролетело!\n", hours_worked);
-                printf("Новое время: День %d, %02d:00\n", current_day, current_hour);
+                advance_time(&current_day, &current_hour); // Вызываем функцию для работы фермера
                 break;
             case 3: // Пункт 3
                 display_inventory(inventory, item_names);
@@ -373,6 +381,6 @@ int main(void) { // Точка входа любой программы, не п
             break;
         }
     }
-    
+
     return 0; // Завершение прораммы
 } // Конец функции main
