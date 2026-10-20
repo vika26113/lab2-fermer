@@ -6,8 +6,7 @@
 #define START_HOUR 8 // Начальный час
 #define HOURS_PER_DAY 24 // Часов в дне
 #define MAX_NAME_LEN 32  // Максимальная длина имени, названий (31 символ и \0)
-#define LINE_BUFFER_LEN 128 // 
-#define MAX_PRICES 30  // 
+#define MAX_PRICES 30  // Количество цен с запасом
 #define MAX_ITEMS 10 // Всего предметов от 0 до 9
 #define ITEM_EMPTY 0 // Пусто
 #define ITEM_WOOD 1 // Дерево
@@ -58,13 +57,13 @@ void load_items_from_file(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Чте�
     fclose(file); // Закрывает файл
     printf("Каталог предметов успешно загружен из файла items.txt!\n");
 }
-void display_time(int day, int hour) {
+void display_time(int day, int hour) { // Функция вывод текущего времени
     printf("\n--- ТЕКУЩЕЕ ВРЕМЯ ---\n");
     printf("День: %d\n", day);
     printf("Время: %02d:00\n", hour);
     printf("---------------------\n");
 }
-void advance_time(int *day, int *hour) {
+void advance_time(int *day, int *hour) { // Функция для работы фермера
     int hours_worked = 0;
     printf("\nСколько часов вы хотите поработать? ");
     if (scanf("%d", &hours_worked) != 1) {
@@ -83,7 +82,7 @@ void advance_time(int *day, int *hour) {
     printf("Вы усердно поработали %d ч. Время пролетело!\n", hours_worked);
     printf("Новое время: День %d, %02d:00\n", *day, *hour);
 }
-void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция вывод инвентаря
     printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         int item_id = inventory[i]; 
@@ -95,7 +94,7 @@ void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_
     }
     printf("---------------------------\n");
 }
-void put_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+void put_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция положить предмет
     int slot_index = -1;
     int item_id = -1;
     printf("\nВведите номер слота (от 0 до %d): ", INVENTORY_SIZE - 1);
@@ -125,7 +124,7 @@ void put_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME
     printf("Успешно! В слот %d помещен предмет [%d] (%s).\n", 
            slot_index, item_id, item_names[item_id]);
 }
-void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция выкинуть предмет
     int slot_index = -1;
     printf("\nВведите номер слота для очистки (от 0 до %d): ", INVENTORY_SIZE - 1);
     if (scanf("%d", &slot_index) != 1) {
@@ -148,7 +147,7 @@ void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAM
                removed_item, item_names[removed_item], slot_index);
     }
 }
-void clean_garbage(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+void clean_garbage(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция очистки от мусора
     int garbage_id = -1;
     int cleaned_count = 0;
     printf("\n--- ОЧИСТКА ОТ МУСОРА ---\n");
@@ -177,7 +176,7 @@ void clean_garbage(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX
                garbage_id, item_names[garbage_id], cleaned_count);
     }
 }
-void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция найти предмет по названию
     char search_query[MAX_NAME_LEN];
     printf("\nВведите название предмета для поиска: ");
     int ch;
@@ -201,24 +200,29 @@ void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MA
     }
     printf("---------------------------------------\n");
 }
-void write_to_diary(const char *farmer_name, int day, int hour) {
-    char diary_entry[LINE_BUFFER_LEN];
-    printf("\nВведите запись для дневника фермера: ");
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF);
-    if (fgets(diary_entry, sizeof(diary_entry), stdin) != NULL) {
-        diary_entry[strcspn(diary_entry, "\n")] = '\0'; // Убираем перенос строки
-    }
+void write_to_diary(const char *farmer_name, int day, int hour, const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция записи в дневник
     FILE *file = fopen("diary.txt", "a");
     if (file == NULL) {
-        printf("Ошибка: не удалось открыть файл diary.txt для записи!\n");
+        printf("\nОшибка: не удалось открыть файл diary.txt для записи!\n");
         return;
     }
-    fprintf(file, "[День %d, Время %02d:00] Фермер %s: %s\n", day, hour, farmer_name, diary_entry);
-    fclose(file); 
-    printf("Запись успешно добавлена в дневник (diary.txt)!\n");
+    fprintf(file, "========================================\n");
+    fprintf(file, "СВОДКА ДНЕВНИКА: Фермер %s\n", farmer_name);
+    fprintf(file, "Время: День %d, %02d:00\n", day, hour);
+    fprintf(file, "Содержимое рюкзака:\n");
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int item_id = inventory[i];
+        if (item_id >= 0 && item_id < MAX_ITEMS) {
+            fprintf(file, "  Слот %d: [%d] %s\n", i, item_id, item_names[item_id]);
+        } else {
+            fprintf(file, "  Слот %d: [%d] Неизвестно\n", i, item_id);
+        }
+    }
+    fprintf(file, "========================================\n\n");
+    fclose(file);
+    printf("\nУспешно! Состояние фермера и инвентарь записаны в diary.txt!\n");
 }
-void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
+void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция для оценки у скупщика
     char price_names[MAX_PRICES][MAX_NAME_LEN];
     int price_values[MAX_PRICES];
     int price_count = 0;
@@ -340,8 +344,8 @@ int main(void) { // Точка входа любой программы, не п
                 search_item_by_name(inventory, item_names); // Вызов функции для поиска предмета по названию
                 break;
             case 8:
-                write_to_diary(farmer_name, current_day, current_hour); // Вызов функции для записи в дневник 
-                break;
+                write_to_diary(farmer_name, current_day, current_hour, inventory, item_names); // Вызов функции для записи в дневник 
+                break; 
             case 9:
                 evaluate_inventory_at_merchant(inventory, item_names); // Вызов функции для оценки рюкзака у скупщика
                 break;
