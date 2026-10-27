@@ -18,6 +18,14 @@
 #define ITEM_WATER 7 // Вода
 #define ITEM_HERB 8 // Лечебная трава
 #define ITEM_SWORD 9 // Меч
+#define MIN_MAP_SIZE 5
+#define MAX_MAP_SIZE 30
+#define WALL '#'
+#define FLOOR '.'
+#define TREE 'T'
+#define ROCK 'R'
+#define TRAP '^'
+#define HERO '@'
 void input_farmer_name(char farmer_name[MAX_NAME_LEN]) { // Функция ввода имени, массив символов для имени
     printf("Введите имя вашего фермера (до 31 символа): ");
     if (fgets(farmer_name, MAX_NAME_LEN, stdin) != NULL) { // Проверка что считывание без ошибок
@@ -281,6 +289,32 @@ void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char it
     fprintf(out_file, "====================================\n");
     fclose(out_file); 
     printf("Ведомость успешно сохранена в файл output.txt!\n");
+}
+char **create_map(int height, int width) { // Выделение памяти под карту
+    char **map = malloc(height * sizeof(char *));
+    if (map == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < height; i++) {
+        map[i] = malloc(width * sizeof(char));
+        if (map[i] == NULL) {
+            for (int j = 0; j < i; j++) {
+                free(map[j]);
+            }
+            free(map);
+            return NULL;
+        }
+    }
+    return map;
+}
+void free_map(char **map, int height) { // Освобождаем память
+    if (map == NULL) {
+        return;
+    }
+    for (int i = 0; i < height; i++) {
+        free(map[i]);
+    }
+    free(map);
 }
 int main(void) { // Точка входа любой программы, не принимает аргументов
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
