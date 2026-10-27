@@ -1,6 +1,8 @@
 #include <stdio.h> // Библиотека вывода и ввода
 #include <string.h>  // Библиотека для строк
 #include <windows.h> // Библиотека для windows
+#include <stdlib.h>
+#include <time.h>
 #define INVENTORY_SIZE 10 // Размер рюкзака
 #define START_DAY 1 // Начальный день
 #define START_HOUR 8 // Начальный час
@@ -365,7 +367,25 @@ void print_map(char **map, int height, int width) { // Функция вывод
         printf("\n");
     }
 }
+void find_free_cell(char **map, int height, int width, int *free_y, int *free_x) { // Функция поиск свободной клетки
+    do {
+        *free_y = 1 + rand() % (height - 2);
+        *free_x = 1 + rand() % (width - 2);
+    } while (map[*free_y][*free_x] != FLOOR);
+}
+void teleport_hero(char **map, int height, int width, int *hero_y, int *hero_x) { // Функция телепортации
+    int new_y;
+    int new_x;
+    map[*hero_y][*hero_x] = FLOOR;
+    find_free_cell(map, height, width, &new_y, &new_x);
+    *hero_y = new_y;
+    *hero_x = new_x;
+    map[*hero_y][*hero_x] = HERO;
+    printf("Герой наступил на руну и телепортировался!\n");
+}
 int main(void) { // Точка входа любой программы, не принимает аргументов
+    SetConsoleOutputCP(CP_UTF8); // Для windows
+    SetConsoleCP(CP_UTF8); // Для windows
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
     int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
     int inventory[INVENTORY_SIZE] = { // Объявление массива
@@ -374,13 +394,17 @@ int main(void) { // Точка входа любой программы, не п
     };
     int choice=-1; // Переменная выбора, запишет число выбранное пользователем
     int hours_worked=0; // Переменная количества часов отработанных пользователем
-    SetConsoleOutputCP(CP_UTF8); // Для windows
-    SetConsoleCP(CP_UTF8); // Для windows
     char farmer_name[MAX_NAME_LEN] = ""; // Массив для имени
     input_farmer_name(farmer_name); // Вызов функции для ввода имени
     printf("\nЗдравствуйте, %s!\n", farmer_name);
     char item_names[MAX_ITEMS][MAX_NAME_LEN]; // Двумерный массив для названий предметов
     load_items_from_file(item_names); // Загрузка предметов из файла
+    srand((unsigned int)time(NULL));
+    int height = 0;
+    int width = 0;
+    int hero_y = 0;
+    int hero_x = 0;
+    char **map = NULL;
     while (1) { // Бесконечный цикл для циклической работы программы
         printf("\n=== Весёлый фермер (Фермер: %s) ===\n", farmer_name);// Вывод заголовка, переход на новую строку
         printf("[0] Выход\n"); // Вывод пункта
