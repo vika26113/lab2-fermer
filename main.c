@@ -383,6 +383,38 @@ void teleport_hero(char **map, int height, int width, int *hero_y, int *hero_x) 
     map[*hero_y][*hero_x] = HERO;
     printf("Герой наступил на руну и телепортировался!\n");
 }
+void move_hero(char **map, int height, int width, int *hero_y, int *hero_x, char command) { // Функция перемещение героя
+    int new_y = *hero_y;
+    int new_x = *hero_x;
+    if (command == 'w' || command == 'W') {
+        new_y--;
+    } else if (command == 's' || command == 'S') {
+        new_y++;
+    } else if (command == 'a' || command == 'A') {
+        new_x--;
+    } else if (command == 'd' || command == 'D') {
+        new_x++;
+    } else {
+        printf("Неизвестная команда движения.\n");
+        return;
+    }
+    if (new_y < 0 || new_y >= height || new_x < 0 || new_x >= width) {
+        printf("Нельзя выйти за границы карты.\n");
+        return;
+    }
+    if (map[new_y][new_x] == WALL || map[new_y][new_x] == TREE || map[new_y][new_x] == ROCK) {
+        printf("Путь заблокирован.\n");
+        return;
+    }
+    map[*hero_y][*hero_x] = FLOOR;
+    *hero_y = new_y;
+    *hero_x = new_x;
+    if (map[*hero_y][*hero_x] == TRAP) {
+        teleport_hero(map, height, width, hero_y, hero_x);
+        return;
+    }
+    map[*hero_y][*hero_x] = HERO;
+}
 int main(void) { // Точка входа любой программы, не принимает аргументов
     SetConsoleOutputCP(CP_UTF8); // Для windows
     SetConsoleCP(CP_UTF8); // Для windows
