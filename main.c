@@ -357,6 +357,14 @@ char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Ге
     map[*hero_y][*hero_x] = HERO;
     return map;
 }
+void print_map(char **map, int height, int width) { // Функция вывод карты
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            printf("%c", map[y][x]);
+        }
+        printf("\n");
+    }
+}
 int main(void) { // Точка входа любой программы, не принимает аргументов
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
     int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
