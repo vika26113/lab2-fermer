@@ -316,6 +316,47 @@ void free_map(char **map, int height) { // Освобождаем память
     }
     free(map);
 }
+char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Генерация карты
+    *height = MIN_MAP_SIZE + rand() % (MAX_MAP_SIZE - MIN_MAP_SIZE + 1);
+    *width = MIN_MAP_SIZE + rand() % (MAX_MAP_SIZE - MIN_MAP_SIZE + 1);
+    char **map = create_map(*height, *width);
+    if (map == NULL) {
+        return NULL;
+    }
+    for (int y = 0; y < *height; y++) {
+        for (int x = 0; x < *width; x++) {
+            if (y == 0 || y == *height - 1 ||
+                x == 0 || x == *width - 1) {
+                map[y][x] = WALL;
+            } else {
+                map[y][x] = FLOOR;
+            }
+        }
+    }
+    for (int y = 1; y < *height - 1; y++) {
+        for (int x = 1; x < *width - 1; x++) {
+            int chance = rand() % 100;
+            if (chance < 15) {
+                map[y][x] = TREE;
+            } else if (chance < 30) {
+                map[y][x] = ROCK;
+            }
+        }
+    }
+    int trap_y;
+    int trap_x;
+    do {
+        trap_y = 1 + rand() % (*height - 2);
+        trap_x = 1 + rand() % (*width - 2);
+    } while (map[trap_y][trap_x] != FLOOR);
+    map[trap_y][trap_x] = TRAP;
+    do {
+        *hero_y = 1 + rand() % (*height - 2);
+        *hero_x = 1 + rand() % (*width - 2);
+    } while (map[*hero_y][*hero_x] != FLOOR);
+    map[*hero_y][*hero_x] = HERO;
+    return map;
+}
 int main(void) { // Точка входа любой программы, не принимает аргументов
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
     int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
