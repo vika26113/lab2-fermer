@@ -415,6 +415,47 @@ void move_hero(char **map, int height, int width, int *hero_y, int *hero_x, char
     }
     map[*hero_y][*hero_x] = HERO;
 }
+void run_adventure(void) { // Функция приключение
+    int height = 0;
+    int width = 0;
+    int hero_y = 0;
+    int hero_x = 0;
+    char **map = generate_map(
+        &height,
+        &width,
+        &hero_y,
+        &hero_x
+    );
+    if (map == NULL) {
+        printf("Не удалось создать карту: недостаточно памяти.\n");
+        return;
+    }
+    char command = '\0';
+    while (command != 'q' && command != 'Q') {
+        print_map(map, height, width);
+        printf("Герой: строка %d, столбец %d\n", hero_y, hero_x);
+        printf("Управление: W — вверх, A — влево, S — вниз, D — вправо, Q — домой\n");
+        printf("Введите команду: ");
+        if (scanf(" %c", &command) != 1) {
+            printf("Не удалось прочитать команду.\n");
+            break;
+        }
+        if (command == 'q' || command == 'Q') {
+            printf("Герой возвращается домой.\n");
+        } else {
+            move_hero(
+                map,
+                height,
+                width,
+                &hero_y,
+                &hero_x,
+                command
+            );
+        }
+    }
+    free_map(map, height);
+    printf("Карта удалена из памяти.\n");
+}
 int main(void) { // Точка входа любой программы, не принимает аргументов
     SetConsoleOutputCP(CP_UTF8); // Для windows
     SetConsoleCP(CP_UTF8); // Для windows
@@ -449,6 +490,7 @@ int main(void) { // Точка входа любой программы, не п
         printf("[7] Поиск предмета в рюкзаке по названию\n");
         printf("[8] Записать состояние в дневник фермера (diary.txt)\n");
         printf("[9] Оценка рюкзака у скупщика\n");
+        printf("[10] Отправиться в приключение\n");
         printf("Выберите пункт меню: "); //Выбор пункта в меню
 
         if (scanf("%d", &choice) != 1) { // Считывает число, записывает в choice, возвращает количество успешно считанных переменных
@@ -487,6 +529,9 @@ int main(void) { // Точка входа любой программы, не п
                 break; 
             case 9:
                 evaluate_inventory_at_merchant(inventory, item_names); // Вызов функции для оценки рюкзака у скупщика
+                break;
+            case 10:
+                run_adventure();
                 break;
             default:
                 printf("Нет такого пункта меню.\n");
