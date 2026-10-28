@@ -24,6 +24,7 @@
 #define MAX_MAP_SIZE 30
 #define STAIRS_UP 'U'
 #define STAIRS_DOWN 'D'
+#define TRAPS_PER_MAP 3
 #define WALL '#'
 #define FLOOR '.'
 #define TREE 'T'
@@ -320,6 +321,12 @@ void free_map(char **map, int height) { // Освобождаем память
     }
     free(map);
 }
+void find_free_cell(char **map, int height, int width, int *free_y, int *free_x) { // Функция поиск свободной клетки
+    do {
+        *free_y = 1 + rand() % (height - 2);
+        *free_x = 1 + rand() % (width - 2);
+    } while (map[*free_y][*free_x] != FLOOR);
+}
 char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Генерация карты
     *height = MIN_MAP_SIZE + rand() % (MAX_MAP_SIZE - MIN_MAP_SIZE + 1);
     *width = MIN_MAP_SIZE + rand() % (MAX_MAP_SIZE - MIN_MAP_SIZE + 1);
@@ -347,13 +354,12 @@ char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Ге
             }
         }
     }
-    int trap_y;
-    int trap_x;
-    do {
-        trap_y = 1 + rand() % (*height - 2);
-        trap_x = 1 + rand() % (*width - 2);
-    } while (map[trap_y][trap_x] != FLOOR);
-    map[trap_y][trap_x] = TRAP;
+    for (int trap = 0; trap < TRAPS_PER_MAP; trap++) {
+        int trap_y;
+        int trap_x;
+        find_free_cell(map, *height, *width, &trap_y, &trap_x);
+        map[trap_y][trap_x] = TRAP;
+    }
     do {
         *hero_y = 1 + rand() % (*height - 2);
         *hero_x = 1 + rand() % (*width - 2);
@@ -369,12 +375,6 @@ void print_map(char **map, int height, int width) { // Функция вывод
         printf("\n");
     }
 }
-void find_free_cell(char **map, int height, int width, int *free_y, int *free_x) { // Функция поиск свободной клетки
-    do {
-        *free_y = 1 + rand() % (height - 2);
-        *free_x = 1 + rand() % (width - 2);
-    } while (map[*free_y][*free_x] != FLOOR);
-}
 void teleport_hero(char **map, int height, int width, int *hero_y, int *hero_x) { // Функция телепортации
     int new_y;
     int new_x;
@@ -385,9 +385,11 @@ void teleport_hero(char **map, int height, int width, int *hero_y, int *hero_x) 
     map[*hero_y][*hero_x] = HERO;
     printf("Герой наступил на руну и телепортировался!\n");
 }
-void move_hero(char **map, int height, int width, int *hero_y, int *hero_x, char command) { // Функция перемещение героя
+char move_hero(char **map, int height, int width, int *hero_y, int *hero_x, int stairs_up_y, int stairs_up_x, 
+               int stairs_down_y, int stairs_down_x, char command) { // Функция перемещение героя
     int new_y = *hero_y;
     int new_x = *hero_x;
+
     if (command == 'w' || command == 'W') {
         new_y--;
     } else if (command == 's' || command == 'S') {
@@ -397,34 +399,46 @@ void move_hero(char **map, int height, int width, int *hero_y, int *hero_x, char
     } else if (command == 'd' || command == 'D') {
         new_x++;
     } else {
-        printf("Неизвестная команда движения.\n");
-        return;
+        printf("Неизвестная команда.\n");
+        return FLOOR;
     }
-    if (new_y < 0 || new_y >= height || new_x < 0 || new_x >= width) {
+    if (new_y < 0 || new_y >= height ||
+        new_x < 0 || new_x >= width) {
         printf("Нельзя выйти за границы карты.\n");
-        return;
+        return FLOOR;
     }
-    if (map[new_y][new_x] == WALL || map[new_y][new_x] == TREE || map[new_y][new_x] == ROCK) {
+    char destination = map[new_y][new_x];
+    if (destination == WALL || destination == TREE || destination == ROCK) {
         printf("Путь заблокирован.\n");
-        return;
+        return FLOOR;
     }
-    map[*hero_y][*hero_x] = FLOOR;
+    if (*hero_y == stairs_down_y && *hero_x == stairs_down_x) {
+        map[*hero_y][*hero_x] = STAIRS_DOWN;
+    } else if (*hero_y == stairs_up_y && *hero_x == stairs_up_x) {
+        map[*hero_y][*hero_x] = STAIRS_UP;
+    } else {
+        map[*hero_y][*hero_x] = FLOOR;
+    }
     *hero_y = new_y;
     *hero_x = new_x;
-    if (map[*hero_y][*hero_x] == TRAP) {
+    if (destination == TRAP) {
+        *hero_y = new_y;
+        *hero_x = new_x;
         teleport_hero(map, height, width, hero_y, hero_x);
-        return;
-    }
-    if (map[*hero_y][*hero_x] == STAIRS_UP) {
-        printf("Герой нашёл лестницу вверх.\n");
+        return TRAP;
     }
     map[*hero_y][*hero_x] = HERO;
+    if (destination == STAIRS_UP) {
+        return STAIRS_UP;
+    }
+    return destination;
 }
 void run_adventure(void) { // Функция приключение
     int height = 0;
     int width = 0;
     int hero_y = 0;
     int hero_x = 0;
+    int floor_number = 1;
     char **map = generate_map(
         &height,
         &width,
@@ -432,51 +446,68 @@ void run_adventure(void) { // Функция приключение
         &hero_x
     );
     if (map == NULL) {
-        printf("Не удалось создать карту: недостаточно памяти.\n");
+        printf("Не удалось создать карту.\n");
         return;
     }
-    int stairs_up_y;
-    int stairs_up_x;
-    find_free_cell(
-        map,
-        height,
-        width,
-        &stairs_up_y,
-        &stairs_up_x
-    );
-    map[stairs_up_y][stairs_up_x] = STAIRS_UP;
     int stairs_down_y = hero_y;
     int stairs_down_x = hero_x;
-    char command = '\0';
-    while (command != 'q' && command != 'Q') {
+    int stairs_up_y;
+    int stairs_up_x;
+    find_free_cell(map, height, width, &stairs_up_y, &stairs_up_x);
+    map[stairs_up_y][stairs_up_x] = STAIRS_UP;
+    char command;
+    while (1) {
+        printf("\nЭтаж: %d\n", floor_number);
         print_map(map, height, width);
-        printf("Герой: строка %d, столбец %d\n", hero_y, hero_x);
-        printf("Управление: W — вверх, A — влево, S — вниз, D — вправо, Q — домой\n");
-        printf("Введите команду: ");
+        printf("Управление: W/A/S/D — движение, Q — домой с лестницы D\n");
+        printf("Команда: ");
         if (scanf(" %c", &command) != 1) {
             printf("Не удалось прочитать команду.\n");
             break;
         }
         if (command == 'q' || command == 'Q') {
             if (hero_y == stairs_down_y && hero_x == stairs_down_x) {
-                printf("Герой вернулся домой.\n");
+                printf("Герой спустился домой.\n");
                 break;
             } else {
                 printf("Вернуться домой можно только с лестницы D.\n");
+                continue;
             }
-        } else {
-            move_hero(
-                map,
-                height,
-                width,
+        }
+        char landed_on = move_hero(
+            map,
+            height,
+            width,
+            &hero_y,
+            &hero_x,
+            stairs_up_y,
+            stairs_up_x,
+            stairs_down_y,
+            stairs_down_x,
+            command
+        );
+        if (landed_on == STAIRS_UP) {
+            free_map(map, height);
+            floor_number++;
+            map = generate_map(
+                &height,
+                &width,
                 &hero_y,
-                &hero_x,
-                command
+                &hero_x
             );
+            if (map == NULL) {
+                printf("Не удалось создать новый этаж.\n");
+                return;
+            }
+            stairs_down_y = hero_y;
+            stairs_down_x = hero_x;
+            find_free_cell(map, height, width, &stairs_up_y, &stairs_up_x);
+            map[stairs_up_y][stairs_up_x] = STAIRS_UP;
+            printf("Вы поднялись на этаж %d.\n", floor_number);
         }
     }
     free_map(map, height);
-    printf("Карта удалена из памяти.\n");
+    printf("Память карты освобождена.\n");
 }
 int main(void) { // Точка входа любой программы, не принимает аргументов
     SetConsoleOutputCP(CP_UTF8); // Для windows
