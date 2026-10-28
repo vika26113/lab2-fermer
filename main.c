@@ -22,6 +22,8 @@
 #define ITEM_SWORD 9 // Меч
 #define MIN_MAP_SIZE 5
 #define MAX_MAP_SIZE 30
+#define STAIRS_UP 'U'
+#define STAIRS_DOWN 'D'
 #define WALL '#'
 #define FLOOR '.'
 #define TREE 'T'
@@ -413,6 +415,9 @@ void move_hero(char **map, int height, int width, int *hero_y, int *hero_x, char
         teleport_hero(map, height, width, hero_y, hero_x);
         return;
     }
+    if (map[*hero_y][*hero_x] == STAIRS_UP) {
+        printf("Герой нашёл лестницу вверх.\n");
+    }
     map[*hero_y][*hero_x] = HERO;
 }
 void run_adventure(void) { // Функция приключение
@@ -430,6 +435,18 @@ void run_adventure(void) { // Функция приключение
         printf("Не удалось создать карту: недостаточно памяти.\n");
         return;
     }
+    int stairs_up_y;
+    int stairs_up_x;
+    find_free_cell(
+        map,
+        height,
+        width,
+        &stairs_up_y,
+        &stairs_up_x
+    );
+    map[stairs_up_y][stairs_up_x] = STAIRS_UP;
+    int stairs_down_y = hero_y;
+    int stairs_down_x = hero_x;
     char command = '\0';
     while (command != 'q' && command != 'Q') {
         print_map(map, height, width);
@@ -441,7 +458,12 @@ void run_adventure(void) { // Функция приключение
             break;
         }
         if (command == 'q' || command == 'Q') {
-            printf("Герой возвращается домой.\n");
+            if (hero_y == stairs_down_y && hero_x == stairs_down_x) {
+                printf("Герой вернулся домой.\n");
+                break;
+            } else {
+                printf("Вернуться домой можно только с лестницы D.\n");
+            }
         } else {
             move_hero(
                 map,
