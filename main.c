@@ -3,6 +3,7 @@
 #include <windows.h> // Библиотека для windows
 #include <stdlib.h>
 #include <time.h>
+
 #define INVENTORY_SIZE 10 // Размер рюкзака
 #define START_DAY 1 // Начальный день
 #define START_HOUR 8 // Начальный час
@@ -31,6 +32,7 @@
 #define ROCK 'R'
 #define TRAP '^'
 #define HERO '@'
+
 void input_farmer_name(char farmer_name[MAX_NAME_LEN]) { // Функция ввода имени, массив символов для имени
     printf("Введите имя вашего фермера (до 31 символа): ");
     if (fgets(farmer_name, MAX_NAME_LEN, stdin) != NULL) { // Проверка что считывание без ошибок
@@ -40,6 +42,7 @@ void input_farmer_name(char farmer_name[MAX_NAME_LEN]) { // Функция вв�
         strcpy(farmer_name, "Фермер"); // Копируем имя фермер
     }
 }
+
 void set_default_items(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция заполнения предмеов, еслифайл не найден
     strcpy(item_names[0], "Пусто"); // Записывает предмет в массив
     strcpy(item_names[1], "Дерево");
@@ -52,6 +55,7 @@ void set_default_items(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функц
     strcpy(item_names[8], "Трава");
     strcpy(item_names[9], "Меч");
 }
+
 void load_items_from_file(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Чтение каталога из items 
     FILE *file = fopen("items.txt", "r"); // Открывает и считывает файл
     if (file == NULL) { // Если нет файла
@@ -70,12 +74,14 @@ void load_items_from_file(char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Чте�
     fclose(file); // Закрывает файл
     printf("Каталог предметов успешно загружен из файла items.txt!\n");
 }
+
 void display_time(int day, int hour) { // Функция вывод текущего времени
     printf("\n--- ТЕКУЩЕЕ ВРЕМЯ ---\n");
     printf("День: %d\n", day);
     printf("Время: %02d:00\n", hour);
     printf("---------------------\n");
 }
+
 void advance_time(int *day, int *hour) { // Функция для работы фермера
     int hours_worked = 0;
     printf("\nСколько часов вы хотите поработать? ");
@@ -95,6 +101,7 @@ void advance_time(int *day, int *hour) { // Функция для работы �
     printf("Вы усердно поработали %d ч. Время пролетело!\n", hours_worked);
     printf("Новое время: День %d, %02d:00\n", *day, *hour);
 }
+
 void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция вывод инвентаря
     printf("\n--- СОСТОЯНИЕ ИНВЕНТАРЯ ---\n");
     for (int i = 0; i < INVENTORY_SIZE; i++) {
@@ -107,6 +114,7 @@ void display_inventory(const int inventory[INVENTORY_SIZE], char item_names[MAX_
     }
     printf("---------------------------\n");
 }
+
 void put_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция положить предмет
     int slot_index = -1;
     int item_id = -1;
@@ -137,6 +145,7 @@ void put_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME
     printf("Успешно! В слот %d помещен предмет [%d] (%s).\n", 
            slot_index, item_id, item_names[item_id]);
 }
+
 void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция выкинуть предмет
     int slot_index = -1;
     printf("\nВведите номер слота для очистки (от 0 до %d): ", INVENTORY_SIZE - 1);
@@ -160,6 +169,7 @@ void drop_item(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAM
                removed_item, item_names[removed_item], slot_index);
     }
 }
+
 void clean_garbage(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция очистки от мусора
     int garbage_id = -1;
     int cleaned_count = 0;
@@ -189,6 +199,7 @@ void clean_garbage(int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX
                garbage_id, item_names[garbage_id], cleaned_count);
     }
 }
+
 void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция найти предмет по названию
     char search_query[MAX_NAME_LEN];
     printf("\nВведите название предмета для поиска: ");
@@ -213,6 +224,7 @@ void search_item_by_name(const int inventory[INVENTORY_SIZE], char item_names[MA
     }
     printf("---------------------------------------\n");
 }
+
 void write_to_diary(const char *farmer_name, int day, int hour, const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция записи в дневник
     FILE *file = fopen("diary.txt", "a");
     if (file == NULL) {
@@ -235,6 +247,7 @@ void write_to_diary(const char *farmer_name, int day, int hour, const int invent
     fclose(file);
     printf("\nУспешно! Состояние фермера и инвентарь записаны в diary.txt!\n");
 }
+
 void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char item_names[MAX_ITEMS][MAX_NAME_LEN]) { // Функция для оценки у скупщика
     char price_names[MAX_PRICES][MAX_NAME_LEN];
     int price_values[MAX_PRICES];
@@ -295,6 +308,7 @@ void evaluate_inventory_at_merchant(const int inventory[INVENTORY_SIZE], char it
     fclose(out_file); 
     printf("Ведомость успешно сохранена в файл output.txt!\n");
 }
+
 char **create_map(int height, int width) { // Выделение памяти под карту
     char **map = malloc(height * sizeof(char *));
     if (map == NULL) {
@@ -312,6 +326,7 @@ char **create_map(int height, int width) { // Выделение памяти п
     }
     return map;
 }
+
 void free_map(char **map, int height) { // Освобождаем память
     if (map == NULL) {
         return;
@@ -321,12 +336,14 @@ void free_map(char **map, int height) { // Освобождаем память
     }
     free(map);
 }
+
 void find_free_cell(char **map, int height, int width, int *free_y, int *free_x) { // Функция поиск свободной клетки
     do {
         *free_y = 1 + rand() % (height - 2);
         *free_x = 1 + rand() % (width - 2);
     } while (map[*free_y][*free_x] != FLOOR);
 }
+
 char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Генерация карты
     *height = MIN_MAP_SIZE + rand() % (MAX_MAP_SIZE - MIN_MAP_SIZE + 1);
     *width = MIN_MAP_SIZE + rand() % (MAX_MAP_SIZE - MIN_MAP_SIZE + 1);
@@ -367,6 +384,7 @@ char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Ге
     map[*hero_y][*hero_x] = HERO;
     return map;
 }
+
 void print_map(char **map, int height, int width) { // Функция вывод карты
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -375,6 +393,7 @@ void print_map(char **map, int height, int width) { // Функция вывод
         printf("\n");
     }
 }
+
 void teleport_hero(char **map, int height, int width, int *hero_y, int *hero_x) { // Функция телепортации
     int new_y;
     int new_x;
@@ -385,6 +404,7 @@ void teleport_hero(char **map, int height, int width, int *hero_y, int *hero_x) 
     map[*hero_y][*hero_x] = HERO;
     printf("Герой наступил на руну и телепортировался!\n");
 }
+
 char move_hero(char **map, int height, int width, int *hero_y, int *hero_x, int stairs_up_y, int stairs_up_x, 
                int stairs_down_y, int stairs_down_x, char command) { // Функция перемещение героя
     int new_y = *hero_y;
@@ -422,6 +442,7 @@ char move_hero(char **map, int height, int width, int *hero_y, int *hero_x, int 
     *hero_y = new_y;
     *hero_x = new_x;
     if (destination == TRAP) {
+        map[new_y][new_x] = FLOOR;
         *hero_y = new_y;
         *hero_x = new_x;
         teleport_hero(map, height, width, hero_y, hero_x);
@@ -433,6 +454,7 @@ char move_hero(char **map, int height, int width, int *hero_y, int *hero_x, int 
     }
     return destination;
 }
+
 void run_adventure(void) { // Функция приключение
     int height = 0;
     int width = 0;
@@ -509,6 +531,7 @@ void run_adventure(void) { // Функция приключение
     free_map(map, height);
     printf("Память карты освобождена.\n");
 }
+
 int main(void) { // Точка входа любой программы, не принимает аргументов
     SetConsoleOutputCP(CP_UTF8); // Для windows
     SetConsoleCP(CP_UTF8); // Для windows
@@ -526,11 +549,6 @@ int main(void) { // Точка входа любой программы, не п
     char item_names[MAX_ITEMS][MAX_NAME_LEN]; // Двумерный массив для названий предметов
     load_items_from_file(item_names); // Загрузка предметов из файла
     srand((unsigned int)time(NULL));
-    int height = 0;
-    int width = 0;
-    int hero_y = 0;
-    int hero_x = 0;
-    char **map = NULL;
     while (1) { // Бесконечный цикл для циклической работы программы
         printf("\n=== Весёлый фермер (Фермер: %s) ===\n", farmer_name);// Вывод заголовка, переход на новую строку
         printf("[0] Выход\n"); // Вывод пункта
