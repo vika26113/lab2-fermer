@@ -1,6 +1,6 @@
 #include <stdio.h> // Библиотека вывода и ввода
 #include <string.h>  // Библиотека для строк
-
+#include <windows.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -548,7 +548,8 @@ void run_adventure(void) { // Функция приключение
 }
 
 int main(void) { // Точка входа любой программы, не принимает аргументов
-    
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
     int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
     int inventory[INVENTORY_SIZE] = { // Объявление массива
