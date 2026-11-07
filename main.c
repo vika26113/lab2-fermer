@@ -1,6 +1,6 @@
 #include <stdio.h> // Библиотека вывода и ввода
 #include <string.h>  // Библиотека для строк
-#include <windows.h> // Библиотека для windows
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -28,7 +28,7 @@
 #define TRAPS_PER_MAP 3
 #define WALL '#'
 #define FLOOR '.'
-#define TREE 'T'
+#define TABLE 'T'
 #define ROCK 'R'
 #define TRAP '^'
 #define HERO '@'
@@ -365,7 +365,7 @@ char **generate_map(int *height, int *width, int *hero_y, int *hero_x) { // Ге
         for (int x = 1; x < *width - 1; x++) {
             int chance = rand() % 100;
             if (chance < 15) {
-                map[y][x] = TREE;
+                map[y][x] = TABLE;
             } else if (chance < 30) {
                 map[y][x] = ROCK;
             }
@@ -428,9 +428,24 @@ char move_hero(char **map, int height, int width, int *hero_y, int *hero_x, int 
         return FLOOR;
     }
     char destination = map[new_y][new_x];
-    if (destination == WALL || destination == TREE || destination == ROCK) {
-        printf("Путь заблокирован.\n");
+    if (destination == WALL) {
+        printf("Путь заблокирован стеной.\n");
         return FLOOR;
+    }
+    if (destination == TABLE || destination == ROCK) {
+        int direction_y = new_y - *hero_y;
+        int direction_x = new_x - *hero_x;
+        int push_y = new_y + direction_y;
+        int push_x = new_x + direction_x;
+        if (push_y < 0  || push_y >= height || push_x < 0  || push_x >= width) {
+            printf("Препятствие нельзя сдвинуть за пределы карты.\n");
+            return FLOOR;
+        }
+        if (map[push_y][push_x] != FLOOR) {
+            printf("Препятствие нельзя сдвинуть, клетка занята.\n");
+            return FLOOR;
+        }
+        map[push_y][push_x] = destination;
     }
     if (*hero_y == stairs_down_y && *hero_x == stairs_down_x) {
         map[*hero_y][*hero_x] = STAIRS_DOWN;
@@ -533,8 +548,7 @@ void run_adventure(void) { // Функция приключение
 }
 
 int main(void) { // Точка входа любой программы, не принимает аргументов
-    SetConsoleOutputCP(CP_UTF8); // Для windows
-    SetConsoleCP(CP_UTF8); // Для windows
+    
     int current_day = START_DAY; // Здесь будет стартовое значение (1)
     int current_hour = START_HOUR; // Здесь будет стартовое значение (8)
     int inventory[INVENTORY_SIZE] = { // Объявление массива
