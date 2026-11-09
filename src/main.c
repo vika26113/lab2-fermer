@@ -30,6 +30,7 @@ int main(void) {
         printf("[3] Посмотреть время\n");
         printf("[4] Пропустить время\n");
         printf("[5] Лечь спать\n");
+        printf("[10] Отправиться в поход\n");
 
         if (!input_int("Выберите пункт: ", &choice)) {
             continue;
@@ -53,6 +54,9 @@ int main(void) {
                 break;
             case 5:
                 game_sleep(game);
+                break;
+            case 10:
+                game_start_expedition(game);
                 break;
             default:
                 printf("Такого пункта меню нет.\n");
