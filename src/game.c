@@ -95,3 +95,54 @@ void game_show_player_card(
     }
     printf("===========================\n");
 }
+
+void game_show_time(const GameState *game) {
+    if (game == NULL) {
+        printf("Игровое состояние не создано.\n");
+        return;
+    }
+    printf("День %d, время %02d:00\n", game->day, game->hour);
+}
+
+void game_skip_time(GameState *game) {
+    if (game == NULL) {
+        printf("Игровое состояние не создано.\n");
+        return;
+    }
+    int hours_to_skip;
+    if (!input_int("На сколько часов пропустить время? ", &hours_to_skip)) {
+        return;
+    }
+    if (hours_to_skip <= 0) {
+        printf("Введите положительное количество часов.\n");
+        return;
+    }
+    int hours_until_2am = 26 - game->hour;
+    if (hours_to_skip > hours_until_2am) {
+        printf("Нельзя пропустить время дальше 02:00. Пора ложиться спать.\n");
+        return;
+    }
+    int total_hours = game->hour + hours_to_skip;
+    game->day += total_hours / 24;
+    game->hour = total_hours % 24;
+    printf("Прошло %d ч. Теперь день %d, время %02d:00.\n",
+           hours_to_skip, game->day, game->hour);
+}
+
+void game_sleep(GameState *game) {
+    if (game == NULL) {
+        printf("Игровое состояние не создано.\n");
+        return;
+    }
+    if (game->player == NULL) {
+        printf("Сначала создайте персонажа.\n");
+        return;
+    }
+    game->day++;
+    game->hour = START_HOUR;
+    game->player->hp = game->player->max_hp;
+    game->player->stamina = game->player->max_stamina;
+    printf("Фермер поспал. Наступил день %d, время %02d:00.\n",
+           game->day, game->hour);
+    printf("Здоровье и выносливость восстановлены.\n");
+}
