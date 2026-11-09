@@ -1,29 +1,41 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
 #include "game.h"
-#include "map.h"
 #include "utils.h"
 
 int main(void) {
-    initialize_random();
-
-    GameState *game = game_create("Фермер");
+    GameState *game = game_create();
 
     if (game == NULL) {
-        printf("Не удалось запустить игру.\n");
+        printf("Не удалось создать игровое состояние.\n");
         return 1;
     }
 
-    printf("День: %d, время: %02d:00\n", game->day, game->hour);
-    printf("Игрок: %s\n", game->player->name);
-    printf("Здоровье: %d/%d\n",
-           game->player->hp,
-           game->player->max_hp);
-    printf("Карта:\n");
+    int choice = -1;
 
-    map_print(game->map);
+    while (choice != 0) {
+        printf("\n=== МЕНЮ ===\n");
+        printf("[0] Выход\n");
+        printf("[1] Создать или пересоздать персонажа\n");
+
+        if (!input_int("Выберите пункт: ", &choice)) {
+            continue;
+        }
+
+        switch (choice) {
+            case 0:
+                printf("Выход из программы.\n");
+                break;
+
+            case 1:
+                game_create_or_replace_player(game);
+                break;
+
+            default:
+                printf("Такого пункта меню нет.\n");
+                break;
+        }
+    }
 
     game_destroy(game);
 

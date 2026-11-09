@@ -4,8 +4,6 @@
 #include "player.h"
 #define START_DAY 1
 #define START_HOUR 8
-#define GAME_MAP_WIDTH 10
-#define GAME_MAP_HEIGHT 10
 
 typedef struct {
     int day;
@@ -14,7 +12,8 @@ typedef struct {
     Map *map;
 } GameState;
 
-GameState *game_create(const char *player_name);
+GameState *game_create(void);
 void game_destroy(GameState *game);
+void game_create_or_replace_player(GameState *game);
 
 #endif

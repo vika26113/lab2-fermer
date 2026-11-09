@@ -1,9 +1,9 @@
 #include "game.h"
-
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-GameState *game_create(const char *player_name) {
+GameState *game_create(void) {
     GameState *game = malloc(sizeof(GameState));
     if (game == NULL) {
         return NULL;
@@ -12,23 +12,45 @@ GameState *game_create(const char *player_name) {
     game->hour = START_HOUR;
     game->player = NULL;
     game->map = NULL;
+    return game;
+}
+
+void game_create_or_replace_player(GameState *game) {
+    if (game == NULL) {
+        return;
+    }
+    if (game->player != NULL) {
+        int answer = 0;
+        printf("\nПерсонаж уже существует.\n");
+        printf("Удалить старого персонажа и создать нового?\n");
+        printf("Введите 1 — да, 0 — нет: ");
+        if (!input_int("", &answer)) {
+            return;
+        }
+        if (answer != 1) {
+            printf("Персонаж не был изменён.\n");
+            return;
+        }
+        player_destroy(game->player);
+        game->player = NULL;
+    }
+    char player_name[MAX_NAME_LEN];
+    if (!input_string(
+            "Введите имя нового персонажа: ",
+            player_name,
+            MAX_NAME_LEN
+        )) {
+        return;
+    }
     game->player = player_create(player_name);
     if (game->player == NULL) {
-        printf("Не удалось создать игрока.\n");
-        free(game);
-        return NULL;
+        printf("Ошибка: не удалось создать персонажа.\n");
+        return;
     }
-    game->map = map_create(GAME_MAP_WIDTH, GAME_MAP_HEIGHT);
-    if (game->map == NULL) {
-        printf("Не удалось создать карту.\n");
-        player_destroy(game->player);
-        free(game);
-        return NULL;
-    }
-    game->player->x = 1;
-    game->player->y = 1;
-    game->map->cells[game->player->y][game->player->x] = HERO;
-    return game;
+    printf(
+        "Персонаж \"%s\" успешно создан.\n",
+        game->player->name
+    );
 }
 
 void game_destroy(GameState *game) {
