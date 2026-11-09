@@ -15,5 +15,6 @@ typedef struct {
 GameState *game_create(void);
 void game_destroy(GameState *game);
 void game_create_or_replace_player(GameState *game);
+void game_show_player_card(const GameState *game, char item_names[MAX_ITEMS][MAX_NAME_LEN]);
 
 #endif

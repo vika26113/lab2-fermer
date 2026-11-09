@@ -12,11 +12,23 @@ int main(void) {
     }
 
     int choice = -1;
-
+    char item_names[MAX_ITEMS][MAX_NAME_LEN] = {
+        "Пусто",
+        "Дерево",
+        "Камень",
+        "Семена",
+        "Железо",
+        "Уголь",
+        "Золото",
+        "Вода",
+        "Трава",
+        "Меч"
+    };
     while (choice != 0) {
         printf("\n=== МЕНЮ ===\n");
         printf("[0] Выход\n");
         printf("[1] Создать или пересоздать персонажа\n");
+        printf("[2] Карточка персонажа\n");
 
         if (!input_int("Выберите пункт: ", &choice)) {
             continue;
@@ -31,6 +43,10 @@ int main(void) {
                 game_create_or_replace_player(game);
                 break;
 
+            case 2:
+                game_show_player_card(game, item_names);
+                break;
+                    
             default:
                 printf("Такого пункта меню нет.\n");
                 break;
