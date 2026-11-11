@@ -1,77 +1,31 @@
-#include "map.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "map.h"
 
-Map *map_create(int width, int height) {
-    Map *map = malloc(sizeof(Map));
-    if (map == NULL) {
-        return NULL;
-    }
-    map->cells = malloc(height * sizeof(char *));
-    if (map->cells == NULL) {
-        free(map);
-        return NULL;
-    }
-    for (int y = 0; y < height; y++) {
-        map->cells[y] = malloc(width * sizeof(char));
-        if (map->cells[y] == NULL) {
-            for (int previous_y = 0; previous_y < y; previous_y++) {
-                free(map->cells[previous_y]);
-            }
-            free(map->cells);
-            free(map);
-            return NULL;
+Map* generate_map(int width, int height, int floor) {
+    Map *m = (Map*)malloc(sizeof(Map));
+    if (m == NULL) return NULL;
+    m->width = width;
+    m->height = height;
+    m->current_floor = floor;
+    m->grid = (char**)malloc(height * sizeof(char*));
+    for (int i = 0; i < height; i++) {
+        m->grid[i] = (char*)malloc(width * sizeof(char));
+        for (int j = 0; j < width; j++) {
+            m->grid[i][j] = '.'; 
         }
     }
-    map->width = width;
-    map->height = height;
-    map->completed_levels = 0;
-    map->location = 0;
-    map_fill(map);
-    return map;
+    return m;
 }
 
-void map_fill(Map *map) {
-    if (map == NULL) {
-        return;
-    }
-    for (int y = 0; y < map->height; y++) {
-        for (int x = 0; x < map->width; x++) {
-            if (y == 0 ||
-                y == map->height - 1 ||
-                x == 0 ||
-                x == map->width - 1) {
-                map->cells[y][x] = WALL;
-            } else {
-                map->cells[y][x] = FLOOR;
-            }
+void free_map(Map **m) {
+    if (*m != NULL) {
+        for (int i = 0; i < (*m)->height; i++) {
+            free((*m)->grid[i]);
         }
+        free((*m)->grid);
+        printf("Память структуры по адресу %p освобождена\n", (void*)*m);
+        free(*m);
+        *m = NULL;
     }
-}
-
-void map_print(const Map *map) {
-    if (map == NULL) {
-        return;
-    }
-    for (int y = 0; y < map->height; y++) {
-        for (int x = 0; x < map->width; x++) {
-            printf("%c", map->cells[y][x]);
-        }
-        printf("\n");
-    }
-}
-
-void map_destroy(Map *map) {
-    if (map == NULL) {
-        return;
-    }
-    for (int y = 0; y < map->height; y++) {
-        free(map->cells[y]);
-    }
-    free(map->cells);
-    printf(
-        "Память структуры карты по адресу %p освобождена\n",
-        (void *)map
-    );
-    free(map);
 }

@@ -1,10 +1,9 @@
 #ifndef UTILS_H
 #define UTILS_H
-#include <stdbool.h>
-#define INPUT_BUFFER_SIZE 128
 
-bool input_int(const char *message, int *value);
-bool input_string(const char *message, char *buffer, int buffer_size);
-void initialize_random(void);
+void clear_input_buffer();
+int input_int(int min, int max);
+void input_string(char *str, int max_len);
+char get_char();
 
 #endif
