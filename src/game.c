@@ -36,6 +36,8 @@ void sleep_time(GameState *gs) {
     gs->hour = 8;
     gs->player->hp = gs->player->max_hp;
     gs->player->stamina = gs->player->max_stamina;
+    gs->player->active_buff.type = STATUS_NONE;
+    gs->player->active_buff.steps_left = 0;
     printf("Вы хорошо выспались. Здоровье и выносливость восстановлены.\n");
 }
 
@@ -52,6 +54,7 @@ void start_expedition(GameState *gs) {
         printf("Ночью походы запрещены!\n");
         return;
     }
+
     gs->map = generate_map(10, 10, 1);
     char action;
     int floor = 1;
@@ -66,16 +69,49 @@ void start_expedition(GameState *gs) {
             free_map(&gs->map);
             break;
         }
-        gs->player->stamina -= 1;
+        int stamina_cost = 1;
+        if (gs->player->active_buff.type == STATUS_STRAIN) {
+            stamina_cost = 2;
+            printf("[!] Растяжение: тратится 2 единицы выносливости!\n");
+        } else if (gs->player->active_buff.type == STATUS_VIGOR) {
+            stamina_cost = 0;
+            printf("[+] Бодрость: шаг бесплатный!\n");
+        }
+        gs->player->stamina -= stamina_cost;
+        if (gs->player->stamina < 0) gs->player->stamina = 0;
+        if (gs->player->active_buff.type == STATUS_POISON) {
+            gs->player->hp -= 2;
+            printf("[!] Отравление: вы теряете 2 HP!\n");
+        }
+        if (gs->player->active_buff.type != STATUS_NONE) {
+            gs->player->active_buff.steps_left--;
+            if (gs->player->active_buff.steps_left <= 0) {
+                gs->player->active_buff.type = STATUS_NONE;
+                printf("[+] Действие эффекта закончилось.\n");
+            }
+        }
+        if (gs->player->active_buff.type == STATUS_NONE) {
+            if (rand() % 100 < 5) {
+                gs->player->active_buff.type = (rand() % 3) + 1;
+                gs->player->active_buff.steps_left = 10;
+                printf("\n=== ВНИМАНИЕ ===\n");
+                if (gs->player->active_buff.type == STATUS_STRAIN) printf("Вы подвернули ногу! (Растяжение на 10 шагов)\n");
+                if (gs->player->active_buff.type == STATUS_POISON) printf("Вы съели странную ягоду! (Отравление на 10 шагов)\n");
+                if (gs->player->active_buff.type == STATUS_VIGOR) printf("Вы нашли родник! (Бодрость на 10 шагов)\n");
+                printf("================\n");
+            }
+        }
+
         if (rand() % 100 < 20) {
             floor++;
             printf("\n»> Вы нашли лестницу на %d этаж! «<\n", floor);
             gs->player->stamina -= 5;
             gs->player->gold += BASE_GOLD_MULTIPLIER * floor;
             gs->hour++;
-            if (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
+            if (gs->hour >= 24) { gs->hour -= 24; gs->day++;}
         }
-        if (gs->player->stamina <= 0 || (gs->hour >= 2 && gs->hour < 8)) {
+
+        if (gs->player->stamina <= 0 || gs->player->hp <= 0 || (gs->hour >= 2 && gs->hour < 8)) {
             printf("\n!!! Вы потеряли сознание или наступила ночь !!!\n");
             printf("Спасатели доставили вас домой и забрали половину золота.\n");
             gs->player->gold /= 2;

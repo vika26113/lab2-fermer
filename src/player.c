@@ -20,6 +20,8 @@ Player* create_player() {
     p->x = 0;
     p->y = 0;
     p->inventory_count = 0;
+    p->active_buff.type = STATUS_NONE;
+    p->active_buff.steps_left = 0;
     printf("Персонаж %s успешно создан!\n", p->name);
     return p;
 }
@@ -39,5 +41,12 @@ void print_player_card(const Player *p) {
     printf("Здоровье: %d/%d\n", p->hp, p->max_hp);
     printf("Выносливость: %d/%d\n", p->stamina, p->max_stamina);
     printf("Золото: %d\n", p->gold);
+    printf("Эффект: ");
+    switch(p->active_buff.type) {
+        case STATUS_STRAIN: printf("Растяжение (осталось шагов: %d)\n", p->active_buff.steps_left); break;
+        case STATUS_POISON: printf("Отравление (осталось шагов: %d)\n", p->active_buff.steps_left); break;
+        case STATUS_VIGOR:  printf("Бодрость (осталось шагов: %d)\n", p->active_buff.steps_left); break;
+        default: printf("Здоров\n"); break;
+    }
     printf("--------------------------\n");
 }
