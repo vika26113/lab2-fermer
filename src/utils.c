@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include "utils.h"
 
 void clear_input_buffer() {
@@ -32,4 +33,26 @@ char get_char() {
     scanf("%c", &c);
     clear_input_buffer();
     return toupper(c);
+}
+
+void load_catalog(Item *catalog, int max_items) {
+    FILE *file = fopen("items.txt", "r");
+    if (file == NULL) file = fopen("../items.txt", "r");
+    if (file == NULL) {
+        const char *defaults[] = {"Пусто", "Дерево", "Камень", "Семена", "Железо", "Уголь", "Золото", "Вода", "Трава", "Меч"};
+        for (int i = 0; i < max_items; i++) {
+            catalog[i].id = i;
+            strcpy(catalog[i].name, defaults[i]);
+        }
+        return;
+    }
+    for (int i = 0; i < max_items; i++) {
+        catalog[i].id = i;
+        if (fgets(catalog[i].name, MAX_NAME_LEN, file) != NULL) {
+            catalog[i].name[strcspn(catalog[i].name, "\n")] = '\0';
+        } else {
+            strcpy(catalog[i].name, "Неизвестно");
+        }
+    }
+    fclose(file);
 }
