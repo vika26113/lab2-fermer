@@ -1,7 +1,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#define MAX_NAME_LEN 32
-#define MAX_ITEMS 10
+#include "utils.h"
+#define INVENTORY_SIZE 10
+#define ITEM_EMPTY 0
 
 typedef enum {
     STATUS_NONE = 0,
@@ -22,14 +23,17 @@ typedef struct {
     int stamina;
     int max_stamina;
     int gold;
-    int x, y;
-    int inventory[MAX_ITEMS];
-    int inventory_count;
+    int inventory[INVENTORY_SIZE];
     Buff active_buff;
 } Player;
 
 Player* create_player();
 void free_player(Player **p);
-void print_player_card(const Player *p);
+void print_player_card(const Player *p, const Item *catalog);
+void display_inventory(const Player *p, const Item *catalog);
+void put_item(Player *p, const Item *catalog);
+void drop_item(Player *p, const Item *catalog);
+void clean_garbage(Player *p, const Item *catalog);
+void search_item_by_name(const Player *p, const Item *catalog);
 
 #endif
