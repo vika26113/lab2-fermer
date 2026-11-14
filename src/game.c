@@ -8,29 +8,22 @@ void init_game(GameState *gs) {
     gs->hour = 8;
     gs->player = NULL;
     gs->map = NULL;
+    load_catalog(gs->catalog, MAX_ITEMS);
 }
 
 void wait_time(GameState *gs) {
     int hours;
-    printf("Сколько часов ждать? (от 1 до 18): ");
-    hours = input_int(1, 18);
-    int new_hour = gs->hour + hours;
-    if (new_hour >= 2 && new_hour < 8 && gs->hour < 2) { 
-        printf("Нельзя ждать ночью, фермер должен спать!\n");
-        return;
-    }
+    printf("Сколько часов работать? ");
+    int hours = input_int(1, 24);
     gs->hour += hours;
-    if (gs->hour >= 24) {
-        gs->hour -= 24;
-        gs->day++;
-    }
+    while (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
     printf("Время: День %d, %02d:00\n", gs->day, gs->hour);
 }
 
 void sleep_time(GameState *gs) {
-    if (gs->player == NULL) {
-        printf("Сначала создайте персонажа!\n");
-        return;
+    if (!gs->player) { 
+        printf("Сначала создайте персонажа!\n"); 
+        return; 
     }
     gs->day++;
     gs->hour = 8;
@@ -38,9 +31,143 @@ void sleep_time(GameState *gs) {
     gs->player->stamina = gs->player->max_stamina;
     gs->player->active_buff.type = STATUS_NONE;
     gs->player->active_buff.steps_left = 0;
-    printf("Вы хорошо выспались. Здоровье и выносливость восстановлены.\n");
+    printf("Вы хорошо выспались.\n");
 }
 
+void write_to_diary(GameState *gs) {
+    if (!gs->player) { 
+        printf("Нет персонажа!\n"); 
+        return; 
+    }
+    FILE *f = fopen("diary.txt", "a");
+    if (!f) { 
+        printf("Ошибка файла!\n"); 
+        return; 
+    }
+    fprintf(f, "Фермер %s | День %d, %02d:00\n", gs->player->name, gs->day, gs->hour);
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int id = gs->player->inventory[i];
+        fprintf(f, "  Слот %d: %s\n", i, gs->catalog[id].name);
+    }
+    fprintf(f, "---\n");
+    fclose(f);
+    printf("Записано в diary.txt\n");
+}
+
+void evaluate_inventory_at_merchant(GameState *gs) {
+    if (!gs->player) { 
+        printf("Нет персонажа!\n"); 
+        return; 
+    }
+    FILE *in = fopen("input.txt", "r");
+    if (!in) { 
+        printf("Ошибка: input.txt не найден!\n"); 
+        return; 
+    }
+    char names[MAX_PRICES][MAX_NAME_LEN];
+    int prices[MAX_PRICES];
+    int count = 0;
+    while (count < MAX_PRICES && fscanf(in, "%31s %d", names[count], &prices[count]) == 2) count++;
+    fclose(in);
+    FILE *out = fopen("output.txt", "w");
+    if (!out) return;
+    int total = 0;
+    int max_price = -1;
+    char max_item_name[MAX_NAME_LEN] = "Нет предметов";
+    printf("\n=== ОЦЕНОЧНАЯ ВЕДОМОСТЬ СКУПЩИКА ===\n");
+    fprintf(out, "=== ОЦЕНОЧНАЯ ВЕДОМОСТЬ СКУПЩИКА ===\n");
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int id = gs->player->inventory[i];
+        if (id == ITEM_EMPTY) continue;
+        int price = 0;
+        for (int p = 0; p < count; p++) {
+            if (strcmp(gs->catalog[id].name, names[p]) == 0) {
+                price = prices[p];
+                break;
+            }
+        }
+        printf("Слот %d: [%d] %s — Цена: %d монет\n", i, id, gs->catalog[id].name, price);
+        fprintf(out, "Слот %d: [%d] %s — Цена: %d монет\n", i, id, gs->catalog[id].name, price);
+        total += price;
+        if (price > max_price) {
+            max_price = price;
+            strcpy(max_item_name, gs->catalog[id].name);
+        }
+    }
+    printf("------------------------------------\n");
+    fprintf(out, "------------------------------------\n");
+    if (max_price > 0) {
+        printf("Самый дорогой предмет: %s (%d монет)\n", max_item_name, max_price);
+        fprintf(out, "Самый дорогой предмет: %s (%d монет)\n", max_item_name, max_price);
+    } else {
+        printf("Нет ценных предметов.\n");
+        fprintf(out, "Нет ценных предметов.\n");
+    }
+    printf("ИТОГОВАЯ ВЫРУЧКА: %d монет\n", total);
+    fprintf(out, "ИТОГОВАЯ ВЫРУЧКА: %d монет\n", total);
+    fclose(out);
+    gs->player->gold += total;
+    for (int i = 0; i < INVENTORY_SIZE; i++) gs->player->inventory[i] = ITEM_EMPTY;
+    printf("Все продано! Ведомость в output.txt\n");
+}
+
+void game_loop(GameState *gs) { 
+    while (1) { 
+        printf("\n=== Весёлый фермер ===\n"); 
+        printf("1. Создать/пересоздать\n2. Карточка\n3. Инвентарь\n4. Положить предмет\n"); 
+        printf("5. Выбросить предмет\n6. Очистка от мусора (Вариант 5)\n7. Поиск по названию\n"); 
+        printf("8. Дневник\n9. Скупщик (Вариант 8)\n10. Поспать\n11. Ждать\n12. В поход\n0. Выход\n"); 
+        int choice = input_int(0, 12); 
+        switch (choice) { 
+            case 0: 
+                if (gs->player) free_player(&gs->player); 
+                if (gs->map) free_map(&gs->map); 
+                return;
+            case 1: 
+                if (gs->player) { 
+                    printf("Удалить текущего? (1-Да, 0-Нет): "); 
+                    if (input_int(0, 1) == 1) free_player(&gs->player); 
+                    else break; 
+            } 
+                gs->player = create_player();
+            case 2: 
+                print_player_card(gs->player, gs->catalog);
+                break;
+            case 3: 
+                display_inventory(gs->player, gs->catalog); 
+                break;
+            case 4: 
+                put_item(gs->player, gs->catalog); 
+                break;
+            case 5: 
+                drop_item(gs->player, gs->catalog); 
+                break;
+            case 6: 
+                clean_garbage(gs->player, gs->catalog); 
+                break;
+            case 7: 
+                search_item_by_name(gs->player, gs->catalog); 
+                break;
+            case 8: 
+                write_to_diary(gs); 
+                break;
+            case 9: 
+                evaluate_inventory_at_merchant(gs); 
+                break;
+            case 10: 
+                sleep_time(gs); 
+                break;
+            case 11: 
+                wait_time(gs); 
+                break;
+            case 12:
+                if (gs->player) start_expedition(gs);
+                else printf("Сначала создайте персонажа!\n");
+                break;
+        }
+    }
+}
+            
 void start_expedition(GameState *gs) {
     if (gs->player == NULL) {
         printf("Сначала создайте персонажа!\n");
