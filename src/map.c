@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "map.h"
+#include "player.h"
 
 static void find_free_cell(Map *m, int *y, int *x) {
     do {
@@ -63,11 +64,14 @@ void print_map(const Map *m) {
     }
 }
 
-int move_hero(Map *m, char command) {
+int move_hero(Map *m, Player *p, char command) {
     int hero_y = -1, hero_x = -1;
     for (int i = 0; i < m->height; i++) {
         for (int j = 0; j < m->width; j++) {
-            if (m->grid[i][j] == HERO) { hero_y = i; hero_x = j; }
+            if (m->grid[i][j] == HERO) { 
+                hero_y = i; 
+                hero_x = j; 
+            }
         }
     }
     if (hero_y == -1) return 'E';
@@ -87,16 +91,20 @@ int move_hero(Map *m, char command) {
         if (m->grid[push_y][push_x] != FLOOR && m->grid[push_y][push_x] != TRAP) return 'E';
         m->grid[push_y][push_x] = dest;
     }
-    if (hero_y == m->stairs_down_y && hero_x == m->stairs_down_x) m->grid[hero_y][hero_x] = STAIRS_DOWN;
-    else if (hero_y == m->stairs_up_y && hero_x == m->stairs_up_x) m->grid[hero_y][hero_x] = STAIRS_UP;
-    else m->grid[hero_y][hero_x] = FLOOR;
-    m->grid[new_y][new_x] = HERO;
-    if (dest == TRAP) {
-        int ty, tx;
-        find_free_cell(m, &ty, &tx);
-        m->grid[new_y][new_x] = FLOOR;
-        m->grid[ty][tx] = HERO;
-        printf("Герой наступил на руну и телепортировался!\n");
+    if (p->y == m->stairs_down_y && p->x == m->stairs_down_x) m->grid[p->y][p->x] = STAIRS_DOWN; 
+    else if (p->y == m->stairs_up_y && p->x == m->stairs_up_x) m->grid[p->y][p->x] = STAIRS_UP; 
+    else m->grid[p->y][p->x] = FLOOR;  
+    p->y = new_y; 
+    p->x = new_x; 
+    m->grid[p->y][p->x] = HERO; 
+    if (dest == TRAP) { 
+        int ty, tx; 
+        find_free_cell(m, &ty, &tx); 
+        m->grid[p->y][p->x] = FLOOR; 
+        p->y = ty; 
+        p->x = tx; 
+        m->grid[p->y][p->x] = HERO; 
+        printf("Герой наступил на руну и телепортировался!\n"); 
         return 'T';
     }
     if (dest == STAIRS_UP) return 'U';

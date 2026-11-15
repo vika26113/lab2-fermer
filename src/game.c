@@ -133,33 +133,35 @@ void start_expedition(GameState *gs) {
         return; 
     }
     gs->map = generate_map(1);
+    for (int i = 0; i < gs->map->height; i++) {
+        for (int j = 0; j < gs->map->width; j++) {
+            if (gs->map->grid[i][j] == HERO) {
+                gs->player->x = j;
+                gs->player->y = i;
+            }
+        }
+    }
     int floor = 1;
     char action;
     while (1) {
-        printf("\n=== Этаж %d ===\n", floor);
         print_map(gs->map);
-        printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Время: %02d:00\n", gs->player->hp, gs->player->max_hp, gs->player->stamina, gs->player->max_stamina, gs->player->gold, gs->hour);
+        printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Этаж: %d | Время: %02d:00\n", 
+               gs->player->hp, gs->player->max_hp, 
+               gs->player->stamina, gs->player->max_stamina, 
+               gs->player->gold, floor, gs->hour);
         printf("Действие (W/A/S/D - шаг, Q - выход с 'D'): ");
         action = get_char();
         if (action == 'Q') {
-            int hero_y = -1, hero_x = -1;
-            for (int i = 0; i < gs->map->height; i++) {
-                for (int j = 0; j < gs->map->width; j++) {
-                    if (gs->map->grid[i][j] == HERO) {
-                        hero_y = i; hero_x = j;
-                    }
-                }
-            }
-            if (hero_y == gs->map->stairs_down_y && hero_x == gs->map->stairs_down_x) {
+            if (gs->player->y == gs->map->stairs_down_y && gs->player->x == gs->map->stairs_down_x) {
                 printf("Вы успешно вернулись домой.\n");
                 free_map(&gs->map);
                 break;
-                } else {
+            } else {
                 printf("Выход только с лестницы D!\n");
                 continue;
             }
         }
-        int res = move_hero(gs->map, action);
+        int res = move_hero(gs->map, gs->player, action);
         if (res == 'E') {
             printf("Путь заблокирован.\n");
             continue;
@@ -168,7 +170,7 @@ void start_expedition(GameState *gs) {
         if (gs->player->active_buff.type == STATUS_STRAIN) {
             stamina_cost = 2;
             printf("[!] Растяжение: -2 выносливости!\n");
-            } else if (gs->player->active_buff.type == STATUS_VIGOR) {
+        } else if (gs->player->active_buff.type == STATUS_VIGOR) {
             stamina_cost = 0;
             printf("[+] Бодрость: шаг бесплатный!\n");
         }
@@ -203,6 +205,14 @@ void start_expedition(GameState *gs) {
             if (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
             free_map(&gs->map);
             gs->map = generate_map(floor);
+            for (int i = 0; i < gs->map->height; i++) {
+                for (int j = 0; j < gs->map->width; j++) {
+                    if (gs->map->grid[i][j] == HERO) {
+                        gs->player->x = j;
+                        gs->player->y = i;
+                    }
+                }
+            }
         }
         if (gs->player->stamina <= 0 || gs->player->hp <= 0 || (gs->hour >= 2 && gs->hour < 8)) {
             printf("\n!!! Обморок или ночь !!!\nСпасатели забрали половину золота.\n");
@@ -244,7 +254,7 @@ void game_loop(GameState *gs) {
                 gs->player = create_player();
                 break;
             case 2: 
-                print_player_card(gs->player, gs->catalog); 
+                print_player_card(gs->player, gs->catalog, gs->day, gs->hour); 
                 break;
             case 3: 
                 time_menu(gs); 

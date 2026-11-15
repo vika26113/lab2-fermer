@@ -23,13 +23,14 @@ typedef struct {
     int stamina;
     int max_stamina;
     int gold;
+    int x, y;
     int inventory[INVENTORY_SIZE];
     Buff active_buff;
 } Player;
 
 Player* create_player();
 void free_player(Player **p);
-void print_player_card(const Player *p, const Item *catalog);
+void print_player_card(const Player *p, const Item *catalog, int day, int hour);
 void display_inventory(const Player *p, const Item *catalog);
 void put_item(Player *p, const Item *catalog);
 void drop_item(Player *p, const Item *catalog);

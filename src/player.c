@@ -17,7 +17,7 @@ Player* create_player() {
     p->max_stamina = 50;
     p->stamina = p->max_stamina;
     p->gold = 0;
-    
+    p->x = 0; p->y = 0;
     for (int i = 0; i < INVENTORY_SIZE; i++) p->inventory[i] = ITEM_EMPTY; 
     p->inventory[0] = 1;
     p->inventory[1] = 2; 
@@ -40,25 +40,41 @@ void free_player(Player **p) {
     }
 }
 
-void print_player_card(const Player *p, const Item *catalog) {
-    if (p == NULL) {
+void print_player_card(const Player *p, const Item *catalog, int day, int hour) {
+    if (p == NULL) { 
         printf("Сначала создайте персонажа!\n"); 
         return; 
     }
     printf("\n--- КАРТОЧКА ПЕРСОНАЖА ---\n");
     printf("Имя: %s\n", p->name);
+    printf("Текущее время: День %d, %02d:00\n", day, hour);
     printf("Здоровье: %d/%d | Выносливость: %d/%d | Золото: %d\n", p->hp, p->max_hp, p->stamina, p->max_stamina, p->gold);
+    printf("Координаты на карте: X=%d, Y=%d\n", p->x, p->y);
     printf("Эффект: ");
     switch(p->active_buff.type) {
-        case STATUS_STRAIN: printf("Растяжение (%d шагов)\n", p->active_buff.steps_left); 
-        break;
-        case STATUS_POISON: printf("Отравление (%d шагов)\n", p->active_buff.steps_left); 
-        break;
-        case STATUS_VIGOR:  printf("Бодрость (%d шагов)\n", p->active_buff.steps_left); 
-        break;
-        default: printf("Здоров\n"); 
-        break;
+        case STATUS_STRAIN: 
+            printf("Растяжение (%d шагов)\n", p->active_buff.steps_left); 
+            break;
+        case STATUS_POISON: 
+            printf("Отравление (%d шагов)\n", p->active_buff.steps_left); 
+            break;
+        case STATUS_VIGOR:  
+            printf("Бодрость (%d шагов)\n", p->active_buff.steps_left); 
+            break;
+        default: 
+            printf("Здоров\n"); 
+            break;
     }
+    printf("Содержимое инвентаря:\n");
+    int has_items = 0;
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        int id = p->inventory[i];
+        if (id != ITEM_EMPTY) {
+            printf("  Слот %d: [%d] %s\n", i, id, catalog[id].name);
+            has_items = 1;
+        }
+    }
+    if (!has_items) printf("  [Пусто]\n");
     printf("--------------------------\n");
 }
 

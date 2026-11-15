@@ -13,6 +13,8 @@
 #define STAIRS_DOWN 'D'
 #define TRAPS_PER_MAP 3
 
+struct Player;
+
 typedef struct {
     int width;
     int height;
@@ -25,6 +27,6 @@ typedef struct {
 Map* generate_map(int floor);
 void free_map(Map **m);
 void print_map(const Map *m);
-int move_hero(Map *m, char command);
+int move_hero(Map *m, struct Player *p, char command);
 
 #endif
