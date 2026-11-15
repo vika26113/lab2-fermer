@@ -13,6 +13,7 @@ typedef struct {
 
 void init_game(GameState *gs);
 void game_loop(GameState *gs);
+void time_menu(GameState *gs);
 void wait_time(GameState *gs);
 void sleep_time(GameState *gs);
 void write_to_diary(GameState *gs);

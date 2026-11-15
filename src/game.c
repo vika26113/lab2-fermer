@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "game.h"
 #include "utils.h"
 
@@ -11,8 +12,34 @@ void init_game(GameState *gs) {
     load_catalog(gs->catalog, MAX_ITEMS);
 }
 
+void time_menu(GameState *gs) {
+    int choice = -1;
+    while (choice != 0) {
+        printf("\n--- УПРАВЛЕНИЕ ВРЕМЕНЕМ ---\n");
+        printf("Текущее время: День %d, %02d:00\n", gs->day, gs->hour);
+        printf("1. Посмотреть на часы\n");
+        printf("2. Пропустить время (Ждать)\n");
+        printf("3. Отдых (Лечь спать)\n");
+        printf("0. Назад в главное меню\n");
+        printf("Выбор: ");
+        choice = input_int(0, 3);
+        switch (choice) {
+            case 1:
+                printf("На часах: День %d, %02d:00\n", gs->day, gs->hour);
+                break;
+            case 2:
+                wait_time(gs);
+                break;
+            case 3:
+                sleep_time(gs);
+                break;
+            case 0:
+                break;
+        }
+    }
+}
+
 void wait_time(GameState *gs) {
-    int hours;
     printf("Сколько часов работать? ");
     int hours = input_int(1, 24);
     gs->hour += hours;
@@ -21,10 +48,7 @@ void wait_time(GameState *gs) {
 }
 
 void sleep_time(GameState *gs) {
-    if (!gs->player) { 
-        printf("Сначала создайте персонажа!\n"); 
-        return; 
-    }
+    if (!gs->player) { printf("Сначала создайте персонажа!\n"); return; }
     gs->day++;
     gs->hour = 8;
     gs->player->hp = gs->player->max_hp;
@@ -35,15 +59,9 @@ void sleep_time(GameState *gs) {
 }
 
 void write_to_diary(GameState *gs) {
-    if (!gs->player) { 
-        printf("Нет персонажа!\n"); 
-        return; 
-    }
+    if (!gs->player) { printf("Нет персонажа!\n"); return; }
     FILE *f = fopen("diary.txt", "a");
-    if (!f) { 
-        printf("Ошибка файла!\n"); 
-        return; 
-    }
+    if (!f) { printf("Ошибка файла!\n"); return; }
     fprintf(f, "Фермер %s | День %d, %02d:00\n", gs->player->name, gs->day, gs->hour);
     for (int i = 0; i < INVENTORY_SIZE; i++) {
         int id = gs->player->inventory[i];
@@ -55,15 +73,9 @@ void write_to_diary(GameState *gs) {
 }
 
 void evaluate_inventory_at_merchant(GameState *gs) {
-    if (!gs->player) { 
-        printf("Нет персонажа!\n"); 
-        return; 
-    }
+    if (!gs->player) { printf("Нет персонажа!\n"); return; }
     FILE *in = fopen("input.txt", "r");
-    if (!in) { 
-        printf("Ошибка: input.txt не найден!\n"); 
-        return; 
-    }
+    if (!in) { printf("Ошибка: input.txt не найден!\n"); return; }
     char names[MAX_PRICES][MAX_NAME_LEN];
     int prices[MAX_PRICES];
     int count = 0;
@@ -111,96 +123,52 @@ void evaluate_inventory_at_merchant(GameState *gs) {
     printf("Все продано! Ведомость в output.txt\n");
 }
 
-void game_loop(GameState *gs) { 
-    while (1) { 
-        printf("\n=== Весёлый фермер ===\n"); 
-        printf("1. Создать/пересоздать\n2. Карточка\n3. Инвентарь\n4. Положить предмет\n"); 
-        printf("5. Выбросить предмет\n6. Очистка от мусора (Вариант 5)\n7. Поиск по названию\n"); 
-        printf("8. Дневник\n9. Скупщик (Вариант 8)\n10. Поспать\n11. Ждать\n12. В поход\n0. Выход\n"); 
-        int choice = input_int(0, 12); 
-        switch (choice) { 
-            case 0: 
-                if (gs->player) free_player(&gs->player); 
-                if (gs->map) free_map(&gs->map); 
-                return;
-            case 1: 
-                if (gs->player) { 
-                    printf("Удалить текущего? (1-Да, 0-Нет): "); 
-                    if (input_int(0, 1) == 1) free_player(&gs->player); 
-                    else break; 
-            } 
-                gs->player = create_player();
-            case 2: 
-                print_player_card(gs->player, gs->catalog);
-                break;
-            case 3: 
-                display_inventory(gs->player, gs->catalog); 
-                break;
-            case 4: 
-                put_item(gs->player, gs->catalog); 
-                break;
-            case 5: 
-                drop_item(gs->player, gs->catalog); 
-                break;
-            case 6: 
-                clean_garbage(gs->player, gs->catalog); 
-                break;
-            case 7: 
-                search_item_by_name(gs->player, gs->catalog); 
-                break;
-            case 8: 
-                write_to_diary(gs); 
-                break;
-            case 9: 
-                evaluate_inventory_at_merchant(gs); 
-                break;
-            case 10: 
-                sleep_time(gs); 
-                break;
-            case 11: 
-                wait_time(gs); 
-                break;
-            case 12:
-                if (gs->player) start_expedition(gs);
-                else printf("Сначала создайте персонажа!\n");
-                break;
-        }
-    }
-}
-            
 void start_expedition(GameState *gs) {
-    if (gs->player == NULL) {
-        printf("Сначала создайте персонажа!\n");
-        return;
+    if (gs->player->stamina <= 0) { 
+        printf("Нет сил! Идите спать.\n"); 
+        return; 
     }
-    if (gs->player->stamina == 0) {
-        printf("У вас нет сил на поход! Идите спать.\n");
-        return;
+    if (gs->hour >= 2 && gs->hour < 8) { 
+        printf("Ночью походы запрещены!\n"); 
+        return; 
     }
-    if (gs->hour >= 2 && gs->hour < 8) {
-        printf("Ночью походы запрещены!\n");
-        return;
-    }
-
-    gs->map = generate_map(10, 10, 1);
-    char action;
+    gs->map = generate_map(1);
     int floor = 1;
+    char action;
     while (1) {
-        printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Этаж: %d | Время: %02d:00\n", 
-               gs->player->hp, gs->player->max_hp, gs->player->stamina, gs->player->max_stamina, 
-               gs->player->gold, floor, gs->hour);
-        printf("Действие (W - шаг, Q - выход): ");
+        printf("\n=== Этаж %d ===\n", floor);
+        print_map(gs->map);
+        printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Время: %02d:00\n", gs->player->hp, gs->player->max_hp, gs->player->stamina, gs->player->max_stamina, gs->player->gold, gs->hour);
+        printf("Действие (W/A/S/D - шаг, Q - выход с 'D'): ");
         action = get_char();
         if (action == 'Q') {
-            printf("Вы успешно вернулись домой.\n");
-            free_map(&gs->map);
-            break;
+            int hero_y = -1, hero_x = -1;
+            for (int i = 0; i < gs->map->height; i++) {
+                for (int j = 0; j < gs->map->width; j++) {
+                    if (gs->map->grid[i][j] == HERO) {
+                        hero_y = i; hero_x = j;
+                    }
+                }
+            }
+            if (hero_y == gs->map->stairs_down_y && hero_x == gs->map->stairs_down_x) {
+                printf("Вы успешно вернулись домой.\n");
+                free_map(&gs->map);
+                break;
+                } else {
+                printf("Выход только с лестницы D!\n");
+                continue;
+            }
+        }
+        int res = move_hero(gs->map, action);
+        if (res == 'E') {
+            printf("Путь заблокирован.\n");
+            continue;
         }
         int stamina_cost = 1;
         if (gs->player->active_buff.type == STATUS_STRAIN) {
             stamina_cost = 2;
-            printf("[!] Растяжение: тратится 2 единицы выносливости!\n");
-        } else if (gs->player->active_buff.type == STATUS_VIGOR) {
+            printf("[!] Растяжение: -2 выносливости!\n");
+            } else if (gs->player->active_buff.type == STATUS_VIGOR) {
             stamina_cost = 0;
             printf("[+] Бодрость: шаг бесплатный!\n");
         }
@@ -208,39 +176,36 @@ void start_expedition(GameState *gs) {
         if (gs->player->stamina < 0) gs->player->stamina = 0;
         if (gs->player->active_buff.type == STATUS_POISON) {
             gs->player->hp -= 2;
-            printf("[!] Отравление: вы теряете 2 HP!\n");
+            printf("[!] Отравление: -2 HP!\n");
         }
         if (gs->player->active_buff.type != STATUS_NONE) {
             gs->player->active_buff.steps_left--;
             if (gs->player->active_buff.steps_left <= 0) {
                 gs->player->active_buff.type = STATUS_NONE;
-                printf("[+] Действие эффекта закончилось.\n");
+                printf("[+] Эффект закончился.\n");
             }
         }
-        if (gs->player->active_buff.type == STATUS_NONE) {
-            if (rand() % 100 < 5) {
-                gs->player->active_buff.type = (rand() % 3) + 1;
-                gs->player->active_buff.steps_left = 10;
-                printf("\n=== ВНИМАНИЕ ===\n");
-                if (gs->player->active_buff.type == STATUS_STRAIN) printf("Вы подвернули ногу! (Растяжение на 10 шагов)\n");
-                if (gs->player->active_buff.type == STATUS_POISON) printf("Вы съели странную ягоду! (Отравление на 10 шагов)\n");
-                if (gs->player->active_buff.type == STATUS_VIGOR) printf("Вы нашли родник! (Бодрость на 10 шагов)\n");
-                printf("================\n");
-            }
+        if (gs->player->active_buff.type == STATUS_NONE && rand() % 100 < 5) {
+            gs->player->active_buff.type = (rand() % 3) + 1;
+            gs->player->active_buff.steps_left = 10;
+            printf("\n=== ВНИМАНИЕ ===\n");
+            if (gs->player->active_buff.type == STATUS_STRAIN) printf("Вы подвернули ногу! (Растяжение)\n");
+            if (gs->player->active_buff.type == STATUS_POISON) printf("Вы съели ягоду! (Отравление)\n");
+            if (gs->player->active_buff.type == STATUS_VIGOR) printf("Вы нашли родник! (Бодрость)\n");
+            printf("================\n");
         }
-
-        if (rand() % 100 < 20) {
+        if (res == 'U') {
             floor++;
-            printf("\n»> Вы нашли лестницу на %d этаж! «<\n", floor);
+            printf("\n»> Лестница! Этаж %d «<\n", floor);
             gs->player->stamina -= 5;
             gs->player->gold += BASE_GOLD_MULTIPLIER * floor;
             gs->hour++;
-            if (gs->hour >= 24) { gs->hour -= 24; gs->day++;}
+            if (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
+            free_map(&gs->map);
+            gs->map = generate_map(floor);
         }
-
         if (gs->player->stamina <= 0 || gs->player->hp <= 0 || (gs->hour >= 2 && gs->hour < 8)) {
-            printf("\n!!! Вы потеряли сознание или наступила ночь !!!\n");
-            printf("Спасатели доставили вас домой и забрали половину золота.\n");
+            printf("\n!!! Обморок или ночь !!!\nСпасатели забрали половину золота.\n");
             gs->player->gold /= 2;
             gs->player->stamina = 0;
             free_map(&gs->map);
@@ -250,48 +215,65 @@ void start_expedition(GameState *gs) {
 }
 
 void game_loop(GameState *gs) {
-    int choice = 0;
     while (1) {
-        printf("\n=== ГЛАВНОЕ МЕНЮ ===\n");
+        printf("\n=== Весёлый фермер ===\n");
         printf("1. Создать/пересоздать персонажа\n");
         printf("2. Карточка персонажа\n");
-        printf("3. Посмотреть время\n");
-        printf("4. Ждать\n");
-        printf("5. Лечь спать\n");
-        printf("6. Отправиться в приключение\n");
+        printf("3. Управление временем и режим дня\n"); 
+        printf("4. Инвентарь\n");
+        printf("5. Положить предмет\n");
+        printf("6. Выбросить предмет\n");
+        printf("7. Очистка от мусора\n");
+        printf("8. Поиск по названию\n");
+        printf("9. Дневник\n");
+        printf("10. Скупщик\n");
+        printf("11. Отправиться в приключение\n");
         printf("0. Выход\n");
-        printf("Выбор: ");
-        choice = input_int(0, 6);
+        int choice = input_int(0, 11); 
         switch (choice) {
+            case 0:
+                if (gs->player) free_player(&gs->player);
+                if (gs->map) free_map(&gs->map);
+                return;
             case 1:
-                if (gs->player != NULL) {
-                    printf("Персонаж уже существует. Удалить? (1 - Да, 0 - Нет): ");
-                    if (input_int(0, 1) == 1) {
-                        free_player(&gs->player);
-                    } else break;
-                }
+                if (gs->player) {
+                    printf("Удалить текущего? (1-Да, 0-Нет): ");
+                    if (input_int(0, 1) == 1) free_player(&gs->player);
+                    else break;
+            }
                 gs->player = create_player();
                 break;
-            case 2:
-                print_player_card(gs->player);
+            case 2: 
+                print_player_card(gs->player, gs->catalog); 
                 break;
-            case 3:
-                printf("День %d, %02d:00\n", gs->day, gs->hour);
+            case 3: 
+                time_menu(gs); 
+                break; 
+            case 4: 
+                display_inventory(gs->player, gs->catalog); 
                 break;
-            case 4:
-                wait_time(gs);
+            case 5: 
+                put_item(gs->player, gs->catalog); 
                 break;
-            case 5:
-                sleep_time(gs);
+            case 6: 
+                drop_item(gs->player, gs->catalog); 
                 break;
-            case 6:
-                start_expedition(gs);
+            case 7: 
+                clean_garbage(gs->player, gs->catalog); 
                 break;
-            case 0:
-                if (gs->player != NULL) free_player(&gs->player);
-                if (gs->map != NULL) free_map(&gs->map);
-                printf("Выход из игры.\n");
-                return;
+            case 8: 
+                search_item_by_name(gs->player, gs->catalog); 
+                break;
+            case 9: 
+                write_to_diary(gs); 
+                break;
+            case 10: 
+                evaluate_inventory_at_merchant(gs); 
+                break;
+            case 11:
+                if (gs->player) start_expedition(gs);
+                else printf("Сначала создайте персонажа!\n");
+                break;
         }
     }
-}
+}   
