@@ -1,5 +1,6 @@
 #ifndef MAP_H
 #define MAP_H
+#include "player.h"
 #define MIN_MAP_SIZE 5
 #define MAX_MAP_SIZE 15
 #define BASE_GOLD_MULTIPLIER 10
@@ -27,6 +28,6 @@ typedef struct {
 Map* generate_map(int floor);
 void free_map(Map **m);
 void print_map(const Map *m);
-int move_hero(Map *m, struct Player *p, char command);
+int move_hero(Map *m, Player *p, char command);
 
 #endif
