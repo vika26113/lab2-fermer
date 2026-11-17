@@ -3,7 +3,7 @@
 #include "map.h"
 #include "player.h"
 
-static void find_free_cell(Map *m, int *y, int *x) {
+void find_free_cell(Map *m, int *y, int *x) {
     do {
         *y = 1 + rand() % (m->height - 2);
         *x = 1 + rand() % (m->width - 2);
@@ -35,14 +35,13 @@ Map* generate_map(int floor) {
         find_free_cell(m, &ty, &tx);
         m->grid[ty][tx] = TRAP;
     }
-    find_free_cell(m, &m->stairs_down_y, &m->stairs_down_x);
-    m->grid[m->stairs_down_y][m->stairs_down_x] = STAIRS_DOWN;
     find_free_cell(m, &m->stairs_up_y, &m->stairs_up_x);
     m->grid[m->stairs_up_y][m->stairs_up_x] = STAIRS_UP;
     int hy, hx;
     find_free_cell(m, &hy, &hx);
     m->grid[hy][hx] = HERO;
-    return m;
+    m->stairs_down_y = hy;
+    m->stairs_down_x = hx;
 }
 
 void free_map(Map **m) {

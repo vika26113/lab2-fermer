@@ -40,11 +40,25 @@ void time_menu(GameState *gs) {
 }
 
 void wait_time(GameState *gs) {
-    printf("Сколько часов работать? ");
+    if (gs->hour >= 2 && gs->hour < 8) {
+        printf("Сейчас глубокая ночь/раннее утро. Фермер должен спать! Используйте 'Лечь спать'.\n");
+        return;
+    }
+    printf("Сколько часов работать/ждать? ");
     int hours = input_int(1, 24);
-    gs->hour += hours;
-    while (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
-    printf("Время: День %d, %02d:00\n", gs->day, gs->hour);
+    int total_hours = gs->hour + hours;
+    int target_hour = total_hours % 24;
+    int target_day = gs->day + (total_hours / 24);
+    if (target_hour >= 2 && target_hour < 8) {
+        if (target_hour != 2) {
+            printf("Нельзя! Вы пересечете границу 02:00 ночи, а фермер должен спать.\n");
+            printf("Максимальное время ожидания сейчас: %d ч.\n", (26 - gs->hour) % 24);
+            return;
+        }
+    }
+    gs->hour = target_hour;
+    gs->day = target_day;
+    printf("Время пролетело! Теперь: День %d, %02d:00\n", gs->day, gs->hour);
 }
 
 void sleep_time(GameState *gs) {
