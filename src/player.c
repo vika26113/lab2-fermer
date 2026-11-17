@@ -17,7 +17,12 @@ Player* create_player() {
     p->max_stamina = 50;
     p->stamina = p->max_stamina;
     p->gold = 0;
-    p->x = 0; p->y = 0;
+    p->x = 0; 
+    p->y = 0;
+    p->attack = 5;
+    p->defense = 2;
+    p->exp = 0;
+    p->level = 1;
     for (int i = 0; i < INVENTORY_SIZE; i++) p->inventory[i] = ITEM_EMPTY; 
     p->inventory[0] = 1;
     p->inventory[1] = 2; 

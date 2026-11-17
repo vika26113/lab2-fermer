@@ -26,6 +26,10 @@ typedef struct {
     int x, y;
     int inventory[INVENTORY_SIZE];
     Buff active_buff;
+    int attack;
+    int defense;
+    int exp;
+    int level;
 } Player;
 
 Player* create_player();
