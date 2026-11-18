@@ -39,7 +39,7 @@ void load_catalog(Item *catalog, int max_items) {
     FILE *file = fopen("items.txt", "r");
     if (file == NULL) file = fopen("../items.txt", "r");
     if (file == NULL) {
-        const char *defaults[] = {"Пусто", "Дерево", "Камень", "Семена", "Железо", "Уголь", "Золото", "Вода", "Трава", "Меч"};
+        const char *defaults[] = {"Пусто", "Стол", "Камень", "Семена", "Железо", "Уголь", "Золото", "Вода", "Трава", "Меч"};
         for (int i = 0; i < max_items; i++) {
             catalog[i].id = i;
             strcpy(catalog[i].name, defaults[i]);

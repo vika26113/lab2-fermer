@@ -45,20 +45,12 @@ void wait_time(GameState *gs) {
         printf("Сейчас глубокая ночь/раннее утро. Фермер должен спать! Используйте 'Лечь спать'.\n");
         return;
     }
-    printf("Сколько часов работать/ждать? ");
-    int hours = input_int(1, 24);
+    int hours_to_2am = (2 - gs->hour + 24) % 24;
+    printf("Сколько часов работать/ждать? (максимум до 02:00 ночи: %d ч.): ", hours_to_2am);
+    int hours = input_int(1, hours_to_2am);
     int total_hours = gs->hour + hours;
-    int target_hour = total_hours % 24;
-    int target_day = gs->day + (total_hours / 24);
-    if (target_hour >= 2 && target_hour < 8) {
-        if (target_hour != 2) {
-            printf("Нельзя! Вы пересечете границу 02:00 ночи, а фермер должен спать.\n");
-            printf("Максимальное время ожидания сейчас: %d ч.\n", (26 - gs->hour) % 24);
-            return;
-        }
-    }
-    gs->hour = target_hour;
-    gs->day = target_day;
+    gs->hour = total_hours % 24;
+    gs->day += total_hours / 24;
     printf("Время пролетело! Теперь: День %d, %02d:00\n", gs->day, gs->hour);
 }
 
@@ -288,6 +280,11 @@ void start_expedition(GameState *gs) {
             printf("\n!!! Обморок или ночь !!!\nСпасатели забрали половину золота.\n");
             gs->player->gold /= 2;
             gs->player->stamina = 0;
+            gs->day++; 
+            gs->hour = 8; 
+            gs->player->hp = gs->player->max_hp; 
+            free_map(&gs->map); 
+            free_entities(&entities);
             break;
         }
     }
@@ -323,6 +320,9 @@ void game_loop(GameState *gs) {
         printf("[0] Выход\n");
         printf("Выберите пункт меню: ");
         int choice = input_int(0, 11); 
+        if (choice != 0 && choice != 1 && gs->player == NULL) {
+            printf("\nОшибка: Сначала создайте персонажа!\n");
+            continue;
         switch (choice) {
             case 0:
                 if (gs->player) free_player(&gs->player);

@@ -4,7 +4,7 @@
 #include "map.h"
 
 typedef enum {
-    ENT_TREE,
+    ENT_TABLE,
     ENT_ROCK,
     ENT_HEAL,
     ENT_MONSTER

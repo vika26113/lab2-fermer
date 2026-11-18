@@ -31,7 +31,7 @@ Entity* generate_entities(Map *m, int floor_level, int *entity_count, Player *p)
         ents[i].is_alive = 1;
         int r = rand() % 100;
         if (r < 40) {
-            ents[i].type = ENT_TREE;
+            ents[i].type = ENT_TABLE;
             ents[i].symbol = 'T';
             ents[i].hp = 10 + floor_level * 5;
             ents[i].drop_item_id = 1;
@@ -85,7 +85,7 @@ void check_level_up(Player *p, char *log_msg) {
 }
 
 int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg, int *resources_mined, int *monsters_killed) {
-    if (e->type == ENT_TREE || e->type == ENT_ROCK) {
+    if (e->type == ENT_TABLE || e->type == ENT_ROCK) {
         e->hp -= p->attack;
         if (e->hp <= 0) {
             e->is_alive = 0;
@@ -103,7 +103,7 @@ int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg, int
             else sprintf(log_msg, "Рюкзак полон! Ресурс потерян.");
             check_level_up(p, log_msg);
         } else {
-            sprintf(log_msg, "Вы ударили %s. Прочность: %d/%d", catalog[e->drop_item_id].name, e->hp, e->max_hp);
+            sprintf(log_msg, "Вы нанесли %d урона. Осталось прочности: %d/%d", p->attack, e->hp, e->max_hp);
         }
     } else if (e->type == ENT_HEAL) {
         p->hp += 20; if (p->hp > p->max_hp) p->hp = p->max_hp;
