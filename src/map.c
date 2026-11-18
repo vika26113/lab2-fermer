@@ -23,10 +23,7 @@ Map* generate_map(int floor) {
             if (i == 0 || i == m->height - 1 || j == 0 || j == m->width - 1) {
                 m->grid[i][j] = WALL;
             } else {
-                int chance = rand() % 100;
-                if (chance < 15) m->grid[i][j] = TABLE;
-                else if (chance < 30) m->grid[i][j] = ROCK;
-                else m->grid[i][j] = FLOOR;
+                m->grid[i][j] = FLOOR;
             }
         }
     }
