@@ -143,7 +143,7 @@ void start_expedition(GameState *gs) {
     if (gs->hour >= 2 && gs->hour < 8) { printf("Ночью походы запрещены!\n"); return; }
     gs->map = generate_map(1);
     int entity_count = 0;
-    Entity *entities = generate_entities(gs->map->width, gs->map->height, 1, &entity_count, gs->player);
+    Entity *entities = generate_entities(gs->map, 1, &entity_count, gs->player);
     for (int i = 0; i < gs->map->height; i++) {
         for (int j = 0; j < gs->map->width; j++) {
             if (gs->map->grid[i][j] == HERO) { 
@@ -239,7 +239,7 @@ void start_expedition(GameState *gs) {
                 free_map(&gs->map);
                 free_entities(&entities);
                 gs->map = generate_map(floor);
-                entities = generate_entities(gs->map->width, gs->map->height, floor, &entity_count, gs->player);
+                entities = generate_entities(gs->map, floor, &entity_count, gs->player);
                 for (int i = 0; i < gs->map->height; i++) {
                     for (int j = 0; j < gs->map->width; j++) {
                         if (gs->map->grid[i][j] == HERO) { gs->player->x = j; gs->player->y = i; }

@@ -4,8 +4,8 @@
 #include "entity.h"
 #include "utils.h"
 
-Entity* generate_entities(int width, int height, int floor_level, int *entity_count, Player *p) {
-    int area = width * height;
+Entity* generate_entities(Map *m, int floor_level, int *entity_count, Player *p) {
+    int area = m->width * m->height;
     *entity_count = area / 8;
     if (*entity_count < 10) *entity_count = 10;
     if (*entity_count > 50) *entity_count = 50;
@@ -14,9 +14,9 @@ Entity* generate_entities(int width, int height, int floor_level, int *entity_co
     for (int i = 0; i < *entity_count; i++) {
         int ex, ey;
         do {
-            ex = 1 + rand() % (width - 2);
-            ey = 1 + rand() % (height - 2);
-        } while (ex == p->x && ey == p->y);
+            ex = 1 + rand() % (m->width - 2);
+            ey = 1 + rand() % (m->height - 2);
+        } while (m->grid[ey][ex] != FLOOR || (ex == p->x && ey == p->y));
         ents[i].x = ex;
         ents[i].y = ey;
         ents[i].is_alive = 1;
