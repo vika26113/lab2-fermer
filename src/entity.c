@@ -60,6 +60,21 @@ void free_entities(Entity **entities) {
     }
 }
 
+void check_level_up(Player *p, char *log_msg) {
+    while (p->exp >= p->level * 20) {
+        p->exp -= p->level * 20;
+        p->level++;
+        p->max_hp += 10;
+        p->attack += 2;
+        p->defense += 1;
+        p->hp = p->max_hp;
+        p->stamina = p->max_stamina;
+        char temp[64];
+        sprintf(temp, " [УРОВЕНЬ ПОВЫШЕН ДО %d!]", p->level);
+        strcat(log_msg, temp);
+    }
+}
+
 int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg) {
     if (e->type == ENT_TREE || e->type == ENT_ROCK) {
         e->hp -= p->attack;
@@ -73,8 +88,10 @@ int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg) {
                     break;
                 }
             }
-            if (added) sprintf(log_msg, "Вы добыли: %s!", catalog[e->drop_item_id].name);
+            p->exp += 5;
+            if (added) sprintf(log_msg, "Вы добыли: %s! (+5 опыта)", catalog[e->drop_item_id].name);
             else sprintf(log_msg, "Рюкзак полон! Ресурс потерян.");
+            check_level_up(p, log_msg);
         } else {
             sprintf(log_msg, "Вы ударили %s. Прочность: %d/%d", catalog[e->drop_item_id].name, e->hp, e->max_hp);
         }
@@ -93,13 +110,7 @@ int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg) {
             p->gold += gold_drop;
             p->exp += 20;
             sprintf(log_msg, "Монстр побежден! +%d золота, +20 опыта.", gold_drop);
-            if (p->exp >= p->level * 20) {
-                p->level++;
-                p->exp = 0;
-                p->max_hp += 10; p->hp = p->max_hp;
-                p->attack += 2; p->defense += 1;
-                sprintf(log_msg, "Уровень повышен! Теперь у вас %d уровень.", p->level);
-            }
+            check_level_up(p, log_msg);
         } else {
             int dmg_to_p = e->attack - (p->defense / 2);
             if (dmg_to_p < 1) dmg_to_p = 1;

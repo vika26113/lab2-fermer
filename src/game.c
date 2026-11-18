@@ -171,9 +171,11 @@ void start_expedition(GameState *gs) {
             }
             printf("\n");
         }
-        printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Этаж: %d | Время: %02d:00\n", 
-               gs->player->hp, gs->player->max_hp, gs->player->stamina, gs->player->max_stamina, 
-               gs->player->gold, floor, gs->hour);
+        printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Уровень: %d (Опыт: %d/%d) | Этаж: %d | Время: %02d:00\n", 
+               gs->player->hp, gs->player->max_hp, 
+               gs->player->stamina, gs->player->max_stamina, 
+               gs->player->gold, 
+               gs->player->level, gs->player->exp, (gs->player->level * 20), floor, gs->hour);
         printf("Последнее событие: %s\n", log_msg);
         printf("Действие (W/A/S/D - шаг, Q - выход с 'D'): ");
         char action = get_char();

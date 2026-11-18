@@ -148,3 +148,12 @@ void search_item_by_name(const Player *p, const Item *catalog) {
     }
     if (found == 0) printf("Предмет '%s' не найден.\n", query);
 }
+
+void add_item_to_player(Player *p, int item_id) {
+    for (int i = 0; i < INVENTORY_SIZE; i++) {
+        if (p->inventory[i] == ITEM_EMPTY) {
+            p->inventory[i] = item_id;
+            return;
+        }
+    }
+}
