@@ -3,6 +3,7 @@
 #include <string.h>
 #include "game.h"
 #include "utils.h"
+#include "entity.h"
 
 void init_game(GameState *gs) {
     gs->day = 1;
@@ -138,104 +139,122 @@ void evaluate_inventory_at_merchant(GameState *gs) {
 }
 
 void start_expedition(GameState *gs) {
-    if (gs->player->stamina <= 0) { 
-        printf("Нет сил! Идите спать.\n"); 
-        return; 
-    }
-    if (gs->hour >= 2 && gs->hour < 8) { 
-        printf("Ночью походы запрещены!\n"); 
-        return; 
-    }
+    if (gs->player->stamina <= 0) { printf("Нет сил! Идите спать.\n"); return; }
+    if (gs->hour >= 2 && gs->hour < 8) { printf("Ночью походы запрещены!\n"); return; }
     gs->map = generate_map(1);
+    int entity_count = 0;
+    Entity *entities = generate_entities(gs->map->width, gs->map->height, 1, &entity_count, gs->player);
     for (int i = 0; i < gs->map->height; i++) {
         for (int j = 0; j < gs->map->width; j++) {
-            if (gs->map->grid[i][j] == HERO) {
-                gs->player->x = j;
-                gs->player->y = i;
+            if (gs->map->grid[i][j] == HERO) { 
+                gs->player->x = j; 
+                gs->player->y = i; 
             }
         }
     }
+    char log_msg[128] = "Вы вошли в башню. Будьте осторожны!";
     int floor = 1;
-    char action;
     while (1) {
-        print_map(gs->map);
+        system("cls"); 
+        for (int i = 0; i < gs->map->height; i++) {
+            for (int j = 0; j < gs->map->width; j++) {
+                char c = gs->map->grid[i][j];
+                if (gs->player->y == i && gs->player->x == j) c = HERO;
+                else {
+                    for (int k = 0; k < entity_count; k++) {
+                        if (entities[k].is_alive && entities[k].y == i && entities[k].x == j) {
+                            c = entities[k].symbol; break;
+                        }
+                    }
+                }
+                printf("%c", c);
+            }
+            printf("\n");
+        }
         printf("\nHP: %d/%d | Выносливость: %d/%d | Золото: %d | Этаж: %d | Время: %02d:00\n", 
-               gs->player->hp, gs->player->max_hp, 
-               gs->player->stamina, gs->player->max_stamina, 
+               gs->player->hp, gs->player->max_hp, gs->player->stamina, gs->player->max_stamina, 
                gs->player->gold, floor, gs->hour);
+        printf("Последнее событие: %s\n", log_msg);
         printf("Действие (W/A/S/D - шаг, Q - выход с 'D'): ");
-        action = get_char();
+        char action = get_char();
         if (action == 'Q') {
             if (gs->player->y == gs->map->stairs_down_y && gs->player->x == gs->map->stairs_down_x) {
                 printf("Вы успешно вернулись домой.\n");
-                free_map(&gs->map);
                 break;
             } else {
-                printf("Выход только с лестницы D!\n");
+                strcpy(log_msg, "Выход только с лестницы D!");
                 continue;
             }
         }
-        int res = move_hero(gs->map, gs->player, action);
-        if (res == 'E') {
-            printf("Путь заблокирован.\n");
-            continue;
+        int new_y = gs->player->y;
+        int new_x = gs->player->x;
+        if (action == 'W') new_y--;
+        else if (action == 'S') new_y++;
+        else if (action == 'A') new_x--;
+        else if (action == 'D') new_x++;
+        else { 
+            strcpy(log_msg, "Неизвестная команда."); 
+            continue; 
         }
-        int stamina_cost = 1;
-        if (gs->player->active_buff.type == STATUS_STRAIN) {
-            stamina_cost = 2;
-            printf("[!] Растяжение: -2 выносливости!\n");
-        } else if (gs->player->active_buff.type == STATUS_VIGOR) {
-            stamina_cost = 0;
-            printf("[+] Бодрость: шаг бесплатный!\n");
-        }
-        gs->player->stamina -= stamina_cost;
-        if (gs->player->stamina < 0) gs->player->stamina = 0;
-        if (gs->player->active_buff.type == STATUS_POISON) {
-            gs->player->hp -= 2;
-            printf("[!] Отравление: -2 HP!\n");
-        }
-        if (gs->player->active_buff.type != STATUS_NONE) {
-            gs->player->active_buff.steps_left--;
-            if (gs->player->active_buff.steps_left <= 0) {
-                gs->player->active_buff.type = STATUS_NONE;
-                printf("[+] Эффект закончился.\n");
+        Entity *target = NULL;
+        for (int i = 0; i < entity_count; i++) {
+            if (entities[i].is_alive && entities[i].x == new_x && entities[i].y == new_y) {
+                target = &entities[i]; break;
             }
         }
-        if (gs->player->active_buff.type == STATUS_NONE && rand() % 100 < 5) {
-            gs->player->active_buff.type = (rand() % 3) + 1;
-            gs->player->active_buff.steps_left = 10;
-            printf("\n=== ВНИМАНИЕ ===\n");
-            if (gs->player->active_buff.type == STATUS_STRAIN) printf("Вы подвернули ногу! (Растяжение)\n");
-            if (gs->player->active_buff.type == STATUS_POISON) printf("Вы съели ягоду! (Отравление)\n");
-            if (gs->player->active_buff.type == STATUS_VIGOR) printf("Вы нашли родник! (Бодрость)\n");
-            printf("================\n");
-        }
-        if (res == 'U') {
-            floor++;
-            printf("\n»> Лестница! Этаж %d «<\n", floor);
-            gs->player->stamina -= 5;
-            gs->player->gold += BASE_GOLD_MULTIPLIER * floor;
-            gs->hour++;
-            if (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
-            free_map(&gs->map);
-            gs->map = generate_map(floor);
-            for (int i = 0; i < gs->map->height; i++) {
-                for (int j = 0; j < gs->map->width; j++) {
-                    if (gs->map->grid[i][j] == HERO) {
-                        gs->player->x = j;
-                        gs->player->y = i;
+        if (target) {
+            gs->player->stamina -= 2;
+            if (gs->player->stamina < 0) gs->player->stamina = 0;
+            interact_with_entity(target, gs->player, gs->catalog, log_msg);
+        } else {
+            int res = move_hero(gs->map, gs->player, action);
+            if (res == 'E') {
+                strcpy(log_msg, "Путь заблокирован.");
+                continue;
+            }
+            int stamina_cost = 1;
+            if (gs->player->active_buff.type == STATUS_STRAIN) stamina_cost = 2;
+            else if (gs->player->active_buff.type == STATUS_VIGOR) stamina_cost = 0;
+            gs->player->stamina -= stamina_cost;
+            if (gs->player->stamina < 0) gs->player->stamina = 0;
+            if (gs->player->active_buff.type == STATUS_POISON) gs->player->hp -= 2;
+            if (gs->player->active_buff.type != STATUS_NONE) {
+                gs->player->active_buff.steps_left--;
+                if (gs->player->active_buff.steps_left <= 0) gs->player->active_buff.type = STATUS_NONE;
+            }
+            if (gs->player->active_buff.type == STATUS_NONE && rand() % 100 < 5) {
+                gs->player->active_buff.type = (rand() % 3) + 1;
+                gs->player->active_buff.steps_left = 10;
+                strcpy(log_msg, "Вы получили случайный эффект!");
+            }
+            if (res == 'T') strcpy(log_msg, "Вы наступили на руну и телепортировались!");
+            if (res == 'U') {
+                floor++;
+                gs->player->stamina -= 5;
+                gs->player->gold += BASE_GOLD_MULTIPLIER * floor;
+                gs->hour++;
+                if (gs->hour >= 24) { gs->hour -= 24; gs->day++; }
+                free_map(&gs->map);
+                free_entities(&entities);
+                gs->map = generate_map(floor);
+                entities = generate_entities(gs->map->width, gs->map->height, floor, &entity_count, gs->player);
+                for (int i = 0; i < gs->map->height; i++) {
+                    for (int j = 0; j < gs->map->width; j++) {
+                        if (gs->map->grid[i][j] == HERO) { gs->player->x = j; gs->player->y = i; }
                     }
                 }
+                strcpy(log_msg, "Вы поднялись на новый этаж!");
             }
         }
         if (gs->player->stamina <= 0 || gs->player->hp <= 0 || (gs->hour >= 2 && gs->hour < 8)) {
             printf("\n!!! Обморок или ночь !!!\nСпасатели забрали половину золота.\n");
             gs->player->gold /= 2;
             gs->player->stamina = 0;
-            free_map(&gs->map);
             break;
         }
     }
+    free_map(&gs->map);
+    free_entities(&entities);
 }
 
 void game_loop(GameState *gs) {
