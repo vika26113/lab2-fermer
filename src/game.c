@@ -144,6 +144,8 @@ void start_expedition(GameState *gs) {
     gs->map = generate_map(1);
     int entity_count = 0;
     Entity *entities = generate_entities(gs->map, 1, &entity_count, gs->player);
+    int resources_mined = 0; 
+    int monsters_killed = 0;
     for (int i = 0; i < gs->map->height; i++) {
         for (int j = 0; j < gs->map->width; j++) {
             if (gs->map->grid[i][j] == HERO) { 
@@ -205,9 +207,40 @@ void start_expedition(GameState *gs) {
             }
         }
         if (target) {
-            gs->player->stamina -= 2;
-            if (gs->player->stamina < 0) gs->player->stamina = 0;
-            interact_with_entity(target, gs->player, gs->catalog, log_msg);
+            printf("\nВпереди объект: %c. Что сделать?\n", target->symbol);
+            printf("0 - Взаимодействовать (ударить/собрать)\n");
+            printf("1 - Передвинуть\n");
+            printf("Выбор: ");
+            int act = input_int(0, 1);
+            if (act == 0) {
+                gs->player->stamina -= 2;
+                if (gs->player->stamina < 0) gs->player->stamina = 0;
+                interact_with_entity(target, gs->player, gs->catalog, log_msg, &resources_mined, &monsters_killed);
+            } else {
+                int push_y = new_y + (new_y - gs->player->y);
+                int push_x = new_x + (new_x - gs->player->x);
+                int can_push = 1;
+                if (push_y <= 0 || push_y >= gs->map->height - 1 || 
+                    push_x <= 0 || push_x >= gs->map->width - 1 || 
+                    gs->map->grid[push_y][push_x] != FLOOR) {
+                    can_push = 0;
+                }
+                for (int k = 0; k < entity_count; k++) {
+                    if (entities[k].is_alive && entities[k].x == push_x && entities[k].y == push_y) {
+                        can_push = 0; break;
+                    }
+                }
+                if (can_push) {
+                    target->x = push_x;
+                    target->y = push_y;
+                    move_hero(gs->map, gs->player, action);
+                    gs->player->stamina -= 1;
+                    if (gs->player->stamina < 0) gs->player->stamina = 0;
+                    strcpy(log_msg, "Вы передвинули объект.");
+                } else {
+                    strcpy(log_msg, "Передвинуть нельзя: там препятствие.");
+                }
+            }
         } else {
             int res = move_hero(gs->map, gs->player, action);
             if (res == 'E') {
@@ -225,9 +258,12 @@ void start_expedition(GameState *gs) {
                 if (gs->player->active_buff.steps_left <= 0) gs->player->active_buff.type = STATUS_NONE;
             }
             if (gs->player->active_buff.type == STATUS_NONE && rand() % 100 < 5) {
-                gs->player->active_buff.type = (rand() % 3) + 1;
+                int effect = (rand() % 3) + 1;
+                gs->player->active_buff.type = effect;
                 gs->player->active_buff.steps_left = 10;
-                strcpy(log_msg, "Вы получили случайный эффект!");
+                if (effect == STATUS_STRAIN) strcpy(log_msg, "Вы подвернули ногу! (Растяжение)");
+                else if (effect == STATUS_POISON) strcpy(log_msg, "Вы съели ягодку! (Отравление)");
+                else if (effect == STATUS_VIGOR) strcpy(log_msg, "Вы нашли родник! (Бодрость)");
             }
             if (res == 'T') strcpy(log_msg, "Вы наступили на руну и телепортировались!");
             if (res == 'U') {
@@ -258,7 +294,10 @@ void start_expedition(GameState *gs) {
     FILE *f = fopen("diary.txt", "a");
     if (f) {
         fprintf(f, "=== ОТЧЕТ О ПОХОДЕ ===\n");
+        fprintf(f, "Поход окончен: День %d, Время %02d:00\n", gs->day, gs->hour);
         fprintf(f, "Достигнут этаж: %d\n", floor);
+        fprintf(f, "Добыто ресурсов: %d\n", resources_mined);
+        fprintf(f, "Побеждено монстров: %d\n", monsters_killed);
         fprintf(f, "Золото: %d\n", gs->player->gold);
         fprintf(f, "======================\n\n");
         fclose(f);

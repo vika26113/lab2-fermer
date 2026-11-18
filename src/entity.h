@@ -22,6 +22,6 @@ typedef struct {
 
 Entity* generate_entities(Map *m, int floor_level, int *entity_count, Player *p);
 void free_entities(Entity **entities);
-int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg);
+int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg, int *resources_mined, int *monsters_killed);
 
 #endif

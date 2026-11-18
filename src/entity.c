@@ -12,11 +12,20 @@ Entity* generate_entities(Map *m, int floor_level, int *entity_count, Player *p)
     Entity *ents = (Entity*)malloc((*entity_count) * sizeof(Entity));
     if (!ents) return NULL;
     for (int i = 0; i < *entity_count; i++) {
-        int ex, ey;
+        int ex, ey, valid;
         do {
             ex = 1 + rand() % (m->width - 2);
             ey = 1 + rand() % (m->height - 2);
-        } while (m->grid[ey][ex] != FLOOR || (ex == p->x && ey == p->y));
+            valid = 1;
+            if (m->grid[ey][ex] != FLOOR) valid = 0;
+            if (ex == p->x && ey == p->y) valid = 0;
+            for (int j = 0; j < i; j++) {
+                if (ents[j].x == ex && ents[j].y == ey) {
+                    valid = 0;
+                    break;
+                }
+            }
+        } while (!valid);
         ents[i].x = ex;
         ents[i].y = ey;
         ents[i].is_alive = 1;
@@ -75,11 +84,12 @@ void check_level_up(Player *p, char *log_msg) {
     }
 }
 
-int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg) {
+int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg, int *resources_mined, int *monsters_killed) {
     if (e->type == ENT_TREE || e->type == ENT_ROCK) {
         e->hp -= p->attack;
         if (e->hp <= 0) {
             e->is_alive = 0;
+            (*resources_mined)++;
             int added = 0;
             for (int i = 0; i < INVENTORY_SIZE; i++) {
                 if (p->inventory[i] == ITEM_EMPTY) {
@@ -106,6 +116,7 @@ int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg) {
         e->hp -= dmg_to_mon;
         if (e->hp <= 0) {
             e->is_alive = 0;
+            (*monsters_killed)++;
             int gold_drop = 10 + rand() % 20;
             p->gold += gold_drop;
             p->exp += 20;
