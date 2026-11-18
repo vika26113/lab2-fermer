@@ -253,6 +253,14 @@ void start_expedition(GameState *gs) {
             break;
         }
     }
+    FILE *f = fopen("diary.txt", "a");
+    if (f) {
+        fprintf(f, "=== ОТЧЕТ О ПОХОДЕ ===\n");
+        fprintf(f, "Достигнут этаж: %d\n", floor);
+        fprintf(f, "Золото: %d\n", gs->player->gold);
+        fprintf(f, "======================\n\n");
+        fclose(f);
+    }
     free_map(&gs->map);
     free_entities(&entities);
 }
