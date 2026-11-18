@@ -282,6 +282,7 @@ void game_loop(GameState *gs) {
         printf("[10] Скупщик\n");
         printf("[11] Отправиться в приключение\n");
         printf("[0] Выход\n");
+        printf("Выберите пункт меню: ");
         int choice = input_int(0, 11); 
         switch (choice) {
             case 0:
