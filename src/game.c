@@ -319,12 +319,14 @@ void game_loop(GameState *gs) {
         printf("[11] Отправиться в приключение\n");
         printf("[0] Выход\n");
         printf("Выберите пункт меню: ");
-        int choice = input_int(0, 11); 
+        int choice = input_int(0, 11);
         if (choice != 0 && choice != 1 && gs->player == NULL) {
             printf("\nОшибка: Сначала создайте персонажа!\n");
             continue;
+        }
         switch (choice) {
             case 0:
+                printf("Выход из игры.\n");
                 if (gs->player) free_player(&gs->player);
                 if (gs->map) free_map(&gs->map);
                 return;
@@ -333,7 +335,7 @@ void game_loop(GameState *gs) {
                     printf("Удалить текущего? (1-Да, 0-Нет): ");
                     if (input_int(0, 1) == 1) free_player(&gs->player);
                     else break;
-            }
+                }
                 gs->player = create_player();
                 break;
             case 2: 
