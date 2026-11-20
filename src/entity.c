@@ -33,13 +33,13 @@ Entity* generate_entities(Map *m, int floor_level, int *entity_count, Player *p)
         if (r < 40) {
             ents[i].type = ENT_TABLE;
             ents[i].symbol = 'T';
-            ents[i].hp = 10 + floor_level * 5;
+            ents[i].hp = 10 + (floor_level * FLOOR_MULTIPLIER);
             ents[i].drop_item_id = 1;
             ents[i].attack = 0; ents[i].defense = 0;
         } else if (r < 70) {
             ents[i].type = ENT_ROCK;
             ents[i].symbol = 'R';
-            ents[i].hp = 15 + floor_level * 8;
+            ents[i].hp = 15 + (floor_level * (FLOOR_MULTIPLIER * 2));
             ents[i].drop_item_id = 2;
             ents[i].attack = 0; ents[i].defense = 0;
         } else if (r < 80) {
@@ -51,9 +51,9 @@ Entity* generate_entities(Map *m, int floor_level, int *entity_count, Player *p)
         } else {
             ents[i].type = ENT_MONSTER;
             ents[i].symbol = 'M';
-            ents[i].hp = 20 + floor_level * 10;
-            ents[i].attack = 5 + floor_level * 2;
-            ents[i].defense = 2 + floor_level;
+            ents[i].hp = 20 + (floor_level * (FLOOR_MULTIPLIER * 2));
+            ents[i].attack = 5 + (floor_level * FLOOR_MULTIPLIER);
+            ents[i].defense = 2 + (floor_level * (FLOOR_MULTIPLIER / 2));
             ents[i].drop_item_id = 6;
         }
         ents[i].max_hp = ents[i].hp;
@@ -120,7 +120,26 @@ int interact_with_entity(Entity *e, Player *p, Item *catalog, char *log_msg, int
             int gold_drop = 10 + rand() % 20;
             p->gold += gold_drop;
             p->exp += 20;
-            sprintf(log_msg, "Монстр побежден! +%d золота, +20 опыта.", gold_drop);
+            int trophy_status = 0; 
+            if (rand() % 100 < 40) { 
+                int added = 0;
+                for (int i = 0; i < INVENTORY_SIZE; i++) {
+                    if (p->inventory[i] == ITEM_EMPTY) {
+                        p->inventory[i] = e->drop_item_id;
+                        added = 1;
+                        trophy_status = 1;
+                        break;
+                    }
+                }
+                if (added == 0) trophy_status = 2; 
+            }
+            if (trophy_status == 1) {
+                sprintf(log_msg, "Монстр побежден! +%d золота, +20 опыта. Выпал трофей: %s!", gold_drop, catalog[e->drop_item_id].name);
+            } else if (trophy_status == 2) {
+                sprintf(log_msg, "Монстр побежден! +%d золота, +20 опыта. Рюкзак полон, трофей потерян.", gold_drop);
+            } else {
+                sprintf(log_msg, "Монстр побежден! +%d золота, +20 опыта.", gold_drop);
+            }
             check_level_up(p, log_msg);
         } else {
             int dmg_to_p = e->attack - (p->defense / 2);

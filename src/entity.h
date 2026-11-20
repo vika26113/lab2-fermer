@@ -2,6 +2,7 @@
 #define ENTITY_H
 #include "player.h"
 #include "map.h"
+#define FLOOR_MULTIPLIER 5
 
 typedef enum {
     ENT_TABLE,
